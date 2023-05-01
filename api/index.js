@@ -13,6 +13,13 @@ const PORT = process.env.PORT || 5000
 const DB_SERVER_PORT = process.env.DB_SERVER_PORT || 27017
 const DB_GAMEFILTER_DBNAME = process.env.DB_GAMEFILTER_DBNAME || "gamefilter"
 
+app.get('/api', (req, res) => {
+  const path = `/api/item/${v4()}`;
+  res.setHeader('Content-Type', 'text/html');
+  res.setHeader('Cache-Control', 's-max-age=1, stale-while-revalidate');
+  res.end(`Hello!`);
+});
+
 // Connect to MongoDB
 mongoose.connect(`mongodb://73.151.18.50:${DB_SERVER_PORT}/${DB_GAMEFILTER_DBNAME}`, {
   useNewUrlParser: true,

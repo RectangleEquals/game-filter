@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "node server.js"
+    "start": "node api/index.js"
   },
   "pkg": {
-    "scripts": "server.js",
+    "scripts": "api/index.js",
     "targets": [
       "node16-win-x64"
     ]

@@ -2,8 +2,8 @@ require("dotenv").config()
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const addOrUpdateGame = require("./addGame");
-const Game = require("./models/Game.js");
+const addOrUpdateGame = require("../addGame");
+const Game = require("../models/Game.js");
 const cors = require("cors");
 const path = require("path");
 const fs = require("fs");

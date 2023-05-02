@@ -1,9 +1,8 @@
+const config = require("../config/config");
 const mongoose = require("mongoose");
 
-const DB_GAMES_COLLECTION = process.env.DB_GAMES_COLLECTION || "games"
-
 // Game model
-const Game = mongoose.model(DB_GAMES_COLLECTION, {
+const Game = mongoose.model(config.DB_GAMES_COLLECTION, {
   title: String,
   description: String,
   releaseDate: Date,

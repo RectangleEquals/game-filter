@@ -56,7 +56,7 @@ fs.readFile(whitelistFile, "utf-8", (err, data) => {
   for (let line of lines) {
     const trimmedLine = line.trim();
     if (trimmedLine.includes("@@@")) {
-      const regexPattern = trimmedLine.replace(/@@@/g, "([a-zA-Z0-9-]+)");
+      const regexPattern = trimmedLine.replace(/@@@/g, "(.*)");
       allowedOrigins.push(new RegExp(regexPattern));
     } else {
       allowedOrigins.push(new RegExp(trimmedLine));

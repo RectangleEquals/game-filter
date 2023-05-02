@@ -72,6 +72,8 @@ app.use(bodyParser.json());
 // Enable CORS from allowed origins
 app.use(cors({
   origin: function(origin, callback) {
+    callback(`Incoming request from ${req.ip}`);
+
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     if (allowedOrigins.some(regex => regex.test(origin))) {

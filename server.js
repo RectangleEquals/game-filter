@@ -56,7 +56,7 @@ fs.readFile(whitelistFile, "utf-8", (err, data) => {
   for (let line of lines) {
     const trimmedLine = line.trim();
     if (trimmedLine.includes("@@@")) {
-      const regexPattern = trimmedLine.replace(/@@@/g, "(.*)");
+      const regexPattern = trimmedLine.replace(/@@@/g, ".*");
       allowedOrigins.push(new RegExp(regexPattern));
     } else {
       allowedOrigins.push(new RegExp(trimmedLine));
@@ -67,6 +67,7 @@ fs.readFile(whitelistFile, "utf-8", (err, data) => {
 
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 });
+
 
 // Body parser middleware
 app.use(bodyParser.urlencoded({ extended: false }));

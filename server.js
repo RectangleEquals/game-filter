@@ -85,6 +85,10 @@ app.use(cors({
 // Enable compression middleware
 app.use(compression());
 
+app.get("/api/debug", (req, res) => {
+  res.status(200).json(allowedOrigins);
+})
+
 // Get game by ID
 app.get("/api/games/:gameId", (req, res) =>
 {

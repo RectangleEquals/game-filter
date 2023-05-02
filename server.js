@@ -53,7 +53,13 @@ fs.readFile(whitelistFile, "utf-8", (err, data) => {
   // Parse each line of the file as a regular expression and add it to the array
   const lines = data.trim().split("\n");
   for (let line of lines) {
-    allowedOrigins.push(new RegExp(line.trim()));
+    const trimmedLine = line.trim();
+    if (trimmedLine.includes("@@@")) {
+      const regexPattern = trimmedLine.replace(/@@@/g, "([a-zA-Z0-9-]+)");
+      allowedOrigins.push(new RegExp(regexPattern));
+    } else {
+      allowedOrigins.push(new RegExp(trimmedLine));
+    }
   }
 
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

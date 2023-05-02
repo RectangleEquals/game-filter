@@ -6,6 +6,16 @@ const fs = require("fs");
 
 let allowedOrigins = [];
 
+function matchDomain(arr, domain) {
+  for (let i = 0; i < arr.length; i++) {
+    const regex = new RegExp('^' + arr[i].replace(/\*/g, '.*') + '$');
+    if (regex.test(domain)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 const setup = async(server) =>
 {
   let whitelistFile = path.resolve(process.cwd(), "src", "config", config.CORS_WHITELIST_FILENAME);
@@ -23,12 +33,7 @@ const setup = async(server) =>
     const lines = data.trim().split("\n");
     for (let line of lines) {
       const trimmedLine = line.trim();
-      if (trimmedLine.includes("@@@")) {
-        const regexPattern = trimmedLine.replace(/@@@/g, "*");
-        allowedOrigins.push(new RegExp(regexPattern));
-      } else {
-        allowedOrigins.push(new RegExp(trimmedLine));
-      }
+      allowedOrigins.push(trimmedLine);
     }
 
     console.log(`[Allowed Origins]:\n${allowedOrigins}`);
@@ -51,7 +56,7 @@ const middleware = cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!domain) return callback(null, true);
 
-    if (allowedOrigins.some(regex => regex.test(domain)))
+    if (matchDomain(allowedOrigins, domain))
       callback(null, true);
     else
       callback(new Error('Unauthorized cross-origin resource sharing'));

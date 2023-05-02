@@ -57,8 +57,8 @@ router.get("/", async (req, res) =>
     }
     console.log('> Finished processing auth request')
   } catch(error) {
-    res.status(500).json({ message: error });
-    console.error('> ${error}')
+    res.status(500).json({ message: error.message });
+    console.error(`> Auth error: ${error}`)
   }
 });
 

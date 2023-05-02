@@ -9,6 +9,7 @@ const cors = require("cors");
 const compression = require('compression');
 const path = require("path");
 const fs = require("fs");
+const url = require("url");
 
 const app = express();
 const PORT = process.env.PORT || 5000
@@ -72,11 +73,15 @@ app.use(bodyParser.json());
 // Enable CORS from allowed origins
 app.use(cors({
   origin: function(origin, callback) {
-    callback(`Incoming request from ${origin}`);
+    const parsedOrigin = url.parse(origin || '');
+    const domain = parsedOrigin.hostname || '';
+
+    callback(`Incoming request from ${domain}`);
 
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.some(regex => regex.test(origin))) {
+    if (!domain) return callback(null, true);
+
+    if (allowedOrigins.some(regex => regex.test(domain))) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));

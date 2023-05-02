@@ -6,9 +6,12 @@ const fs = require("fs");
 
 let allowedOrigins = [];
 
-function matchDomain(arr, domain) {
+function matchDomain(arr, domain, wildcard = '*') {
+  // Escape any special characters in the wildcard string
+  const escapedWildcard = wildcard.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+
   for (let i = 0; i < arr.length; i++) {
-    const regex = new RegExp('^' + arr[i].replace(/\*/g, '.*') + '$');
+    const regex = new RegExp('^' + arr[i].replace(new RegExp(escapedWildcard, 'g'), '.*') + '$');
     if (regex.test(domain)) {
       return true;
     }
@@ -48,7 +51,8 @@ const setup = async(server) =>
 // Enable CORS from allowed origins
 const middleware = cors({
   origin: (origin, callback) => {
-    const parsedOrigin = url.parse(origin || '');
+    const originWithProtocol = origin.startsWith('http://') || origin.startsWith('https://') ? origin : `http://${origin}`;
+    const parsedOrigin = url.parse(originWithProtocol || '');
     const domain = parsedOrigin.hostname || '';
 
     console.log(`Incoming request from ${domain}`);

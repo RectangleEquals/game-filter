@@ -2,26 +2,27 @@ require("dotenv").config()
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const addOrUpdateGame = require("../addGame");
-const Game = require("../models/Game.js");
+const addOrUpdateGame = require("./addGame");
+const Game = require("./models/Game.js");
 const cors = require("cors");
+const compression = require('compression');
 const path = require("path");
 const fs = require("fs");
 
 const app = express();
 const PORT = process.env.PORT || 5000
+const DB_SERVER_DOMAIN = process.env.DB_SERVER_DOMAIN || "localhost"
 const DB_SERVER_PORT = process.env.DB_SERVER_PORT || 27017
 const DB_GAMEFILTER_DBNAME = process.env.DB_GAMEFILTER_DBNAME || "gamefilter"
 
 app.get('/api', (req, res) => {
-  const path = `/api/item/${v4()}`;
   res.setHeader('Content-Type', 'text/html');
   res.setHeader('Cache-Control', 's-max-age=1, stale-while-revalidate');
   res.end(`Hello!`);
 });
 
 // Connect to MongoDB
-mongoose.connect(`mongodb://73.151.18.50:${DB_SERVER_PORT}/${DB_GAMEFILTER_DBNAME}`, {
+mongoose.connect(`mongodb://${DB_SERVER_DOMAIN}:${DB_SERVER_PORT}/${DB_GAMEFILTER_DBNAME}`, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
@@ -33,8 +34,12 @@ mongoose.connect(`mongodb://73.151.18.50:${DB_SERVER_PORT}/${DB_GAMEFILTER_DBNAM
 });
 
 let allowedOrigins = [];
+let whitelistFile = path.resolve(process.cwd(), "config", process.env.CORS_WHITELIST_FILENAME);
+if(process.env.NODE_ENV === "production")
+  fs.readFileSync(`/etc/secrets/${process.env.CORS_WHITELIST_FILENAME}`)
+
 // Load CORS whitelist from file
-fs.readFile(path.resolve(process.cwd(), "config", "whitelist.txt"), "utf-8", (err, data) => {
+fs.readFile(whitelistFile, "utf-8", (err, data) => {
   if (err) {
     console.error("Error reading whitelist:", err);
     return;
@@ -66,9 +71,20 @@ app.use(cors({
   }
 }));
 
+// Enable compression middleware
+app.use(compression());
+
 // Get game by ID
-app.get("/api/games/:gameId", (req, res) => {
-  console.log(`/api/games/${req.params.gameId} from ${req.ip}`)
+app.get("/api/games/:gameId", (req, res) =>
+{
+  console.log(`/api/games/${req.params.gameId} from ${req.ip}`);
+
+  // Game data should only update once per day, max...
+  // So we set a cache control to help maximize performance
+  res.set({
+    'Cache-Control': 'public, max-age=86400' // max-age in seconds
+  });
+
   Game.find({gameId: req.params.gameId})
     .then(game => {
       res.json(game);
@@ -79,7 +95,8 @@ app.get("/api/games/:gameId", (req, res) => {
 });
 
 // Handle login authentication (Discord)
-app.get("/api/auth", async (req, res) => {
+app.get("/api/auth", async (req, res) =>
+{
   console.log('Incoming Auth request...');
   try {
     if(!(req.query && req.query.provider && req.query.from)) {
@@ -100,19 +117,19 @@ app.get("/api/auth", async (req, res) => {
     // Handle authentication based on requested provider
     switch(req.query.provider) {
       case 'discord':
-        res.status(200).json({ status: 'ok', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200' });
+        res.status(200).json({ message: 'ok', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200' });
         break;
       case 'steam':
-        res.status(501).json({ status: 'Provider not yet implemented', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/501' });
+        res.status(501).json({ message: 'Provider not yet implemented', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/501' });
         break;
       case 'microsoft':
-        res.status(501).json({ status: 'Provider not yet implemented', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/501' });
+        res.status(501).json({ message: 'Provider not yet implemented', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/501' });
         break;
       case 'epic':
-        res.status(501).json({ status: 'Provider not yet implemented', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/501' });
+        res.status(501).json({ message: 'Provider not yet implemented', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/501' });
         break;
       default:
-        res.status(400).json({ status: 'Unknown provider', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500' });
+        res.status(400).json({ message: 'Unknown provider', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400' });
         break;
     }
     console.log('> Finished processing auth request')
@@ -124,13 +141,16 @@ app.get("/api/auth", async (req, res) => {
 
 // Add a game
 app.post('/api/games', async (req, res) => {
+  console.log('Incoming game POST request...');
   try {
     const game = req.body;
+    console.log(`> [game]:\n${JSON.stringify(game)}`);
     const updatedGame = await addOrUpdateGame(game);
     res.status(200).json(updatedGame);
   } catch (error) {
     res.status(500).json({ message: error });
   }
+  console.log('> Finished processing game POST request')
 });
 
 module.exports = app;

@@ -13,17 +13,17 @@ const app = express();
 const PORT = process.env.PORT || 5000
 const DB_SERVER_PROTOCOL = process.env.DB_SERVER_PROTOCOL || "mongodb"
 const DB_SERVER_DOMAIN = process.env.DB_SERVER_DOMAIN || "localhost"
-const DB_SERVER_PORT = process.env.DB_SERVER_PORT || 27017
+const DB_SERVER_PORT = process.env.DB_SERVER_PORT
 const DB_GAMEFILTER_DBNAME = process.env.DB_GAMEFILTER_DBNAME || "gamefilter"
 
-app.get('/api', (req, res) => {
-  res.setHeader('Content-Type', 'text/html');
-  res.setHeader('Cache-Control', 's-max-age=1, stale-while-revalidate');
-  res.end(`Hello!`);
-});
+const getDatabaseUrl = () => {
+  return `${DB_SERVER_PROTOCOL}://${DB_SERVER_DOMAIN + (DB_SERVER_PORT ? `:${DB_SERVER_PORT}` : '')}/${DB_GAMEFILTER_DBNAME}`;
+}
 
 // Connect to MongoDB
-mongoose.connect(`${DB_SERVER_PROTOCOL}://${DB_SERVER_DOMAIN}:${DB_SERVER_PORT}/${DB_GAMEFILTER_DBNAME}`, {
+const dbUrl = getDatabaseUrl();
+console.log(`Connecting to database: '${dbUrl}'`);
+mongoose.connect(dbUrl, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })

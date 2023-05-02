@@ -11,6 +11,7 @@ const fs = require("fs");
 
 const app = express();
 const PORT = process.env.PORT || 5000
+const DB_SERVER_PROTOCOL = process.env.DB_SERVER_PROTOCOL || "mongodb"
 const DB_SERVER_DOMAIN = process.env.DB_SERVER_DOMAIN || "localhost"
 const DB_SERVER_PORT = process.env.DB_SERVER_PORT || 27017
 const DB_GAMEFILTER_DBNAME = process.env.DB_GAMEFILTER_DBNAME || "gamefilter"
@@ -22,7 +23,7 @@ app.get('/api', (req, res) => {
 });
 
 // Connect to MongoDB
-mongoose.connect(`mongodb://${DB_SERVER_DOMAIN}:${DB_SERVER_PORT}/${DB_GAMEFILTER_DBNAME}`, {
+mongoose.connect(`${DB_SERVER_PROTOCOL}://${DB_SERVER_DOMAIN}:${DB_SERVER_PORT}/${DB_GAMEFILTER_DBNAME}`, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })

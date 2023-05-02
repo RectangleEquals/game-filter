@@ -30,7 +30,7 @@ router.get("/", async (req, res) =>
     
     console.log(`> ${basepath} from ${req.ip} - Provider: ${req.query.provider}`);
 
-    let ip = requestIp(req);
+    let ip = requestIp.getClientIp(req);
     if(req.query.from !== ip) {
       //res.status(400).json({ message: 'Bad auth request: IP address mismatch' });
       console.warn(`> [WARNING]: IP address mismatch! Expected '${ip}' got '${req.query.from}'`);

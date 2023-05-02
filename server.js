@@ -12,12 +12,15 @@ const fs = require("fs");
 const app = express();
 const PORT = process.env.PORT || 5000
 const DB_SERVER_PROTOCOL = process.env.DB_SERVER_PROTOCOL || "mongodb"
+const DB_SERVER_USER = process.env.DB_SERVER_USER
+const DB_SERVER_PASS = process.env.DB_SERVER_PASS
 const DB_SERVER_DOMAIN = process.env.DB_SERVER_DOMAIN || "localhost"
 const DB_SERVER_PORT = process.env.DB_SERVER_PORT
 const DB_GAMEFILTER_DBNAME = process.env.DB_GAMEFILTER_DBNAME || "gamefilter"
 
 const getDatabaseUrl = () => {
-  return `${DB_SERVER_PROTOCOL}://${DB_SERVER_DOMAIN + (DB_SERVER_PORT ? `:${DB_SERVER_PORT}` : '')}/${DB_GAMEFILTER_DBNAME}`;
+  let auth = `${DB_SERVER_USER && DB_SERVER_PASS ? `${DB_SERVER_USER}:${DB_SERVER_PASS}@` : ''}`
+  return `${DB_SERVER_PROTOCOL}://${auth}${DB_SERVER_DOMAIN + (DB_SERVER_PORT ? `:${DB_SERVER_PORT}` : '')}/${DB_GAMEFILTER_DBNAME}`;
 }
 
 // Connect to MongoDB

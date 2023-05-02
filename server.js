@@ -63,6 +63,8 @@ fs.readFile(whitelistFile, "utf-8", (err, data) => {
     }
   }
 
+  console.log(`[Allowed Origins]:\n${allowedOrigins}`);
+
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 });
 

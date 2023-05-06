@@ -30,15 +30,20 @@ database.connect().then(async (client) =>
 async function run() {
   // setup middlewares
   console.log('Setting up middlewares...');
-  await useCompression();
-  await useBodyParser();
-  await useCors();
-  await useCookieParser();
-  await useSession();
-  await useRequestLogging();
-  //await useRegenerateFix();
-  await usePassport();
-  await useRoutes();
+  try{
+    await useCompression();
+    await useBodyParser();
+    await useCors();
+    await useCookieParser();
+    await useSession();
+    await useRequestLogging();
+    await useRegenerateFix();
+    await usePassport();
+    await useRoutes();
+  } catch(err) {
+    console.error(err);
+    process.exit(-1);
+  }
 
   // start server
   console.log('Starting listen server...');
@@ -93,6 +98,25 @@ async function useRequestLogging() {
   console.log('> request logging');
   server.use((req, res, next) => {
     console.log(`[request]: ${req.method}:${req.url}`);
+    next();
+  });
+}
+
+// session.regenerate fix (https://github.com/jaredhanson/passport/issues/904)
+async function useRegenerateFix()
+{
+  console.log('> session.regenerate fix');
+  server.use(function(request, response, next) {
+    if (request.session && !request.session.regenerate)
+        request.session.regenerate = cb => {
+          cb();
+        }
+
+    if (request.session && !request.session.save)
+        request.session.save = cb => {
+          cb();
+        }
+
     next();
   });
 }

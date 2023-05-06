@@ -1,7 +1,9 @@
 const config = require("./config/config");
+const MongoStore = require("connect-mongo");
 const mongoose = require("mongoose");
 
 let client = undefined;
+let store = undefined;
 
 const getUrl = (dbName = config.DB_GAMEFILTER_DBNAME) => {
   let auth = `${config.DB_SERVER_USER && config.DB_SERVER_PASS ? `${config.DB_SERVER_USER}:${config.DB_SERVER_PASS}@` : ''}`

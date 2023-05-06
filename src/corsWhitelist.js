@@ -51,20 +51,25 @@ const setup = async(server) =>
 // Enable CORS from allowed origins
 const middleware = cors({
   origin: (origin, callback) => {
-    const originWithProtocol = origin.startsWith('http://') || origin.startsWith('https://') ? origin : `http://${origin}`;
-    const parsedOrigin = url.parse(originWithProtocol || '');
-    const domain = parsedOrigin.hostname || '';
+    if(origin && origin.length > 0) {
+      const originWithProtocol = origin.startsWith('http://') || origin.startsWith('https://') ? origin : `http://${origin}`;
+      const parsedOrigin = url.parse(originWithProtocol || '');
+      const domain = parsedOrigin.hostname || '';
 
-    console.log(`Incoming request from ${domain}`);
+      console.log(`Incoming request from ${domain}`);
 
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!domain) return callback(null, true);
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!domain) return callback(null, true);
 
-    if (matchDomain(allowedOrigins, domain))
-      callback(null, true);
-    else
-      callback(new Error('Unauthorized cross-origin resource sharing'));
-  }
+      if (matchDomain(allowedOrigins, domain))
+        callback(null, true);
+      else
+        callback(new Error('Unauthorized cross-origin resource sharing'));
+    } else {
+      callback(new Error('Undefined origin'));
+    }
+  },
+  credentials: true
 });
 
 module.exports = { setup, middleware };

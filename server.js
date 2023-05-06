@@ -2,10 +2,16 @@ const config = require("./src/config/config");
 const express = require("express");
 const server = express();
 const database = require("./src/database");
-const bodyParser = require("body-parser");
 const compression = require("compression");
 const corsWhitelist = require("./src/corsWhitelist");
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const { getPassport, passport } = require('./src/passport');
+const User = require('./src/models/User');
+//const discordStrategy = require('./src/strategies/discord');
+const localStrategy = require('./src/strategies/local');
 const routes = require("./src/routes");
+
 
 // connect to remote database
 database.connect().then(async (client) =>
@@ -24,14 +30,14 @@ database.connect().then(async (client) =>
 async function run() {
   // setup middlewares
   console.log('Setting up middlewares...');
-  await useBodyParser();
   await useCompression();
+  await useBodyParser();
   await useCors();
-  //await useCookieParser();
-  //await useSession();
+  await useCookieParser();
+  await useSession();
   await useRequestLogging();
   //await useRegenerateFix();
-  //await usePassport();
+  await usePassport();
   await useRoutes();
 
   // start server
@@ -41,11 +47,11 @@ async function run() {
   console.log('=== SERVER IS READY ===');
 }
 
-// bodyparser
+// bodyparser (NOTE: As of Express v4.16, this is now built in)
 async function useBodyParser() {
   console.log('> bodyparser');
-  server.use(bodyParser.urlencoded({ extended: false }));
-  server.use(bodyParser.json());
+  server.use(express.json());
+  server.use(express.urlencoded({extended : false}));
 }
 
 // cors
@@ -60,6 +66,27 @@ async function useCompression() {
   console.log('> compression');
   server.use(compression());
 }
+// cookie parser
+async function useCookieParser() {
+  console.log('> cookie parser');
+  server.use(cookieParser());
+}
+
+// express session
+async function useSession() {
+  console.log('> express session');
+  server.use(session({
+    secret: config.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: database.getStore(),
+    name: config.SESSION_COOKIE_NAME || 'default',
+    cookie: {
+      // NOTE: the '(var | 0)' forces the env variable string into a number
+      expires: (config.SESSION_COOKIE_LIFETIME | 0) || halfDayInMs
+    }
+  }));
+}
 
 // request logging
 async function useRequestLogging() {
@@ -70,43 +97,28 @@ async function useRequestLogging() {
   });
 }
 
+// passport strategies
+async function usePassport()
+{
+  console.log('> passport');
+  getPassport(server);
+
+  localStrategy.use();
+  //discordStrategy.use();
+  //steamStrategy.use();
+}
+
 // routes
 async function useRoutes() {
   console.log('> routes');
   return await routes.use(server, err => {
-    console.error(err);
+    console.error(err.message);
     process.exit(-1);
   });
 }
 
-/*
-function isAuthorized(req, res, next) {
-  if(req.user) {
-      console.log("User is logged in.");
-      res.json({
-        discord: req.user.discord,
-        id: req.user._id,
-        session: req.user.sessionID,
-        hasGamePass: req.user.hasGamePass,
-        createdAt: req.user.createdAt
-      });
-      //res.redirect('/dashboard');
-  } else {
-      console.log("User is not logged in.");
-      res.redirect('/api/v1/auth/login');
-      next();
-  }
-}
-*/
-
 // starts the http listen server
 async function listen()
 {
-  /*
-  server.get('/', isAuthorized, (req, res) => {
-    //res.render('home');
-  });
-  */
-
   server.listen(config.PORT, () => console.log(`Server running on port ${config.PORT}`));
 };

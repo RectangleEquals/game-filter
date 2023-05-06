@@ -32,6 +32,10 @@ async function handleLogin(req, res, next)
   })(req, res, next);
 }
 
+router.get("/", (req, res) => {
+  res.status(200).json({ message: "ok" });
+});
+
 router.post("/login", upload.none(), pp.initializePassport, pp.sessionPassport, handleLogin, async (req, res) => {
   console.log(`User logged in: ${req.userId}`);
   res.cookie('user', req.userId);

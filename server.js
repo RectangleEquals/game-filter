@@ -12,6 +12,7 @@ const User = require('./src/models/User');
 const localStrategy = require('./src/strategies/local');
 const routes = require("./src/routes");
 
+const oneDayInMilliseconds = 86400000;
 
 // connect to remote database
 database.connect().then(async (client) =>
@@ -88,7 +89,7 @@ async function useSession() {
     name: config.SESSION_COOKIE_NAME || 'default',
     cookie: {
       // NOTE: the '(var | 0)' forces the env variable string into a number
-      expires: (config.SESSION_COOKIE_LIFETIME | 0) || halfDayInMs
+      expires: (config.SESSION_COOKIE_LIFETIME | 0) || oneDayInMilliseconds
     }
   }));
 }

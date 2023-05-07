@@ -80,7 +80,12 @@ async function useCookieParser() {
 
 // express session
 async function useSession() {
-  console.log('> express session');
+  // NOTE: the '(var | 0)' forces the env variable string into a number
+  const expires = (config.SESSION_COOKIE_LIFETIME | 0) || oneDayInMilliseconds;
+  const domain = config.NODE_ENV === "production" ? config.DB_SERVER_DOMAIN : "localhost";
+
+  console.log(`> express session (via domain '${domain}' with expiration of '${expires}')`);
+
   server.use(session({
     secret: config.SESSION_SECRET,
     resave: false,
@@ -88,8 +93,9 @@ async function useSession() {
     store: database.getStore(),
     name: config.SESSION_COOKIE_NAME || 'default',
     cookie: {
-      // NOTE: the '(var | 0)' forces the env variable string into a number
-      expires: (config.SESSION_COOKIE_LIFETIME | 0) || oneDayInMilliseconds
+      secure: true,
+      expires: expires,
+      domain: domain
     }
   }));
 }

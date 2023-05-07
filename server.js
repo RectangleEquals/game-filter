@@ -12,6 +12,7 @@ const User = require('./src/models/User');
 const localStrategy = require('./src/strategies/local');
 const routes = require("./src/routes");
 
+const domain = config.NODE_ENV === "production" ? config.DB_SERVER_DOMAIN : "localhost";
 const oneDayInMilliseconds = 86400000;
 
 // connect to remote database
@@ -33,6 +34,7 @@ async function run() {
   console.log('Setting up middlewares...');
   try{
     await useCompression();
+    await useCookieDomainFix();
     await useBodyParser();
     await useCors();
     await useCookieParser();
@@ -53,6 +55,20 @@ async function run() {
   console.log('=== SERVER IS READY ===');
 }
 
+async function useCookieDomainFix() {
+  console.log('> cookie domain fix');
+  app.use((req, res, next) => {
+    res.set('Set-Cookie', `${res.getHeader('Set-Cookie')}; domain=${domain}; HttpOnly; Secure; SameSite=None`);
+    next();
+  });
+}
+
+// compression middleware
+async function useCompression() {
+  console.log('> compression');
+  server.use(compression());
+}
+
 // bodyparser (NOTE: As of Express v4.16, this is now built in)
 async function useBodyParser() {
   console.log('> bodyparser');
@@ -67,11 +83,6 @@ async function useCors() {
   server.use(corsWhitelist.middleware);
 }
 
-// compression middleware
-async function useCompression() {
-  console.log('> compression');
-  server.use(compression());
-}
 // cookie parser
 async function useCookieParser() {
   console.log('> cookie parser');
@@ -82,8 +93,6 @@ async function useCookieParser() {
 async function useSession() {
   // NOTE: the '(var | 0)' forces the env variable string into a number
   const expires = (config.SESSION_COOKIE_LIFETIME | 0) || oneDayInMilliseconds;
-  const domain = config.NODE_ENV === "production" ? config.DB_SERVER_DOMAIN : "localhost";
-
   console.log(`> express session (via domain '${domain}' with expiration of '${expires}')`);
 
   server.use(session({

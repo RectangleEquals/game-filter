@@ -12,7 +12,7 @@ const User = require('./src/models/User');
 const localStrategy = require('./src/strategies/local');
 const routes = require("./src/routes");
 
-const domain = config.NODE_ENV === "production" ? config.DB_SERVER_DOMAIN : "localhost";
+const domain = config.NODE_ENV === "production" ? config.PRODUCTION_DOMAIN_NAME : "localhost";
 const oneDayInMilliseconds = 86400000;
 
 // connect to remote database

@@ -38,7 +38,11 @@ router.get("/", (req, res) => {
 
 router.post("/login", upload.none(), pp.initializePassport, pp.sessionPassport, handleLogin, async (req, res) => {
   console.log(`User logged in: ${req.userId}`);
-  res.cookie('user', req.userId);
+  res.cookie('user', req.userId, {
+    path: '/', 
+    sameSite: 'none', 
+    secure: true 
+  });
   res.status(200).json({message: 'Login successful'});
 
   // Update the database

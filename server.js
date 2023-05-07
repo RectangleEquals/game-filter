@@ -56,8 +56,8 @@ async function run() {
 }
 
 async function useCookieDomainFix() {
-  console.log('> cookie domain fix');
-  app.use((req, res, next) => {
+  console.log(`> cookie domain fix (${domain})`);
+  server.use((req, res, next) => {
     res.set('Set-Cookie', `${res.getHeader('Set-Cookie')}; domain=${domain}; HttpOnly; Secure; SameSite=None`);
     next();
   });

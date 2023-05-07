@@ -43,6 +43,7 @@ router.post("/login", upload.none(), pp.initializePassport, pp.sessionPassport, 
 
   // Update the database
   try {
+    console.log(`Updating database for user ${req.userId}...`);
     const userSession = await UserSession.findOneAndUpdate(
       { sessionId: req.sessionID },
       { $set: { sessionId: req.sessionID, userId: req.userId } },
@@ -94,6 +95,7 @@ router.post("/logout", upload.none(), async (req, res) =>
         await userSession.deleteOne({ sessionId: sessionId });
         res.clearCookie(config.SESSION_COOKIE_NAME || "default");
         res.clearCookie("user");
+        console.warn(`Session documents removed for user ${userId}!`);
         return res.status(200).json({ message: "ok" });
       });
     } catch (err) {

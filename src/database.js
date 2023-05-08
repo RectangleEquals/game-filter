@@ -17,7 +17,8 @@ const getStore = () =>
   
   const cmOptions = {
     mongoUrl: getUrl(),
-    clientPromise: connect()
+    clientPromise: connect(),
+    collectionName: config.DB_SESSION_COLLECTION
   }
 
   return store = MongoStore.create(cmOptions);

@@ -103,9 +103,11 @@ async function useSession() {
     store: database.getStore(),
     name: config.SESSION_COOKIE_NAME || 'default',
     cookie: {
+      maxAge: expires,
+      httpOnly: true,
       secure: true,
-      expires: expires,
-      domain: config.PRODUCTION_DOMAIN_NAME
+      sameSite: 'none'
+      // domain: config.PRODUCTION_DOMAIN_NAME
     }
   }));
 }

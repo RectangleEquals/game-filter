@@ -10,6 +10,9 @@ const router = express.Router();
 const pp = getPassport(router);
 const basepath = config.AUTH_PATH;
 
+const oneDayInMilliseconds = 86400000;
+const expires = (config.SESSION_COOKIE_LIFETIME | 0) || oneDayInMilliseconds;
+
 async function handleLogin(req, res, next)
 {
   console.log('Incoming login request...');
@@ -35,14 +38,17 @@ router.get("/", (req, res) => {
   res.status(200).json({ message: "ok" });
 });
 
-router.post("/login", upload.none(), pp.initializePassport, pp.sessionPassport, handleLogin, async (req, res) => {
+router.post("/login", upload.none(), pp.initializePassport, pp.sessionPassport, handleLogin, async (req, res) =>
+{
   console.log(`User logged in: ${req.userId}`);
-  res.cookie('user', req.userId, {
-    path: config.API_PATH, 
-    sameSite: 'none', 
-    secure: true,
+
+  res.cookie(config.SESSION_COOKIE_NAME || "default", req.userId, {
+    path: config.API_PATH,
+    maxAge: expires,
     httpOnly: true,
-    domain: config.PRODUCTION_DOMAIN_NAME
+    secure: true,
+    sameSite: 'none'
+    // domain: config.PRODUCTION_DOMAIN_NAME
   });
   res.status(200).json({message: 'Login successful'});
 
@@ -99,7 +105,7 @@ router.post("/logout", upload.none(), async (req, res) =>
 
         await userSession.deleteOne({ sessionId: sessionId });
         res.clearCookie(config.SESSION_COOKIE_NAME || "default");
-        res.clearCookie("user");
+        //res.clearCookie("user");
         console.warn(`Session documents removed for user ${userId}!`);
         return res.status(200).json({ message: "ok" });
       });

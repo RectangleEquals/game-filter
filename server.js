@@ -12,7 +12,6 @@ const User = require('./src/models/User');
 const localStrategy = require('./src/strategies/local');
 const routes = require("./src/routes");
 
-const domain = config.NODE_ENV === "production" ? config.PRODUCTION_DOMAIN_NAME : "localhost";
 const oneDayInMilliseconds = 86400000;
 
 // connect to remote database
@@ -56,9 +55,9 @@ async function run() {
 }
 
 async function useCookieDomainFix() {
-  console.log(`> cookie domain fix (${domain})`);
+  console.log(`> cookie domain fix (${config.PRODUCTION_DOMAIN_NAME})`);
   server.use((req, res, next) => {
-    res.set('Set-Cookie', `${res.getHeader('Set-Cookie')}; domain=${domain}; HttpOnly; Secure; SameSite=None`);
+    res.set('Set-Cookie', `${res.getHeader('Set-Cookie')}; domain=${config.PRODUCTION_DOMAIN_NAME}; HttpOnly; Secure; SameSite=None`);
     next();
   });
 }
@@ -93,7 +92,7 @@ async function useCookieParser() {
 async function useSession() {
   // NOTE: the '(var | 0)' forces the env variable string into a number
   const expires = (config.SESSION_COOKIE_LIFETIME | 0) || oneDayInMilliseconds;
-  console.log(`> express session (via domain '${domain}' with expiration of '${expires}')`);
+  console.log(`> express session (via domain '${config.PRODUCTION_DOMAIN_NAME}' with expiration of '${expires}')`);
 
   server.use(session({
     secret: config.SESSION_SECRET,
@@ -104,7 +103,7 @@ async function useSession() {
     cookie: {
       secure: true,
       expires: expires,
-      domain: domain
+      domain: config.PRODUCTION_DOMAIN_NAME
     }
   }));
 }

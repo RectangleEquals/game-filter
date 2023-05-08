@@ -106,7 +106,7 @@ async function useSession() {
       maxAge: expires,
       httpOnly: true,
       secure: true,
-      sameSite: 'none'
+      sameSite: 'None'
       // domain: config.PRODUCTION_DOMAIN_NAME
     }
   }));

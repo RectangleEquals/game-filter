@@ -47,7 +47,7 @@ router.post("/login", upload.none(), pp.initializePassport, pp.sessionPassport, 
     maxAge: expires,
     httpOnly: true,
     secure: true,
-    sameSite: 'none'
+    sameSite: 'None'
     // domain: config.PRODUCTION_DOMAIN_NAME
   });
   res.status(200).json({message: 'Login successful'});

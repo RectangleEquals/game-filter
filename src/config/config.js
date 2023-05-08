@@ -7,6 +7,8 @@ const defaults = {
   NODE_ENV:               process.env.NODE_ENV                || "production",
   PORT:                   process.env.PORT                    || 4000,
   PRODUCTION_DOMAIN_NAME: process.env.NODE_ENV === "production" ? process.env.PRODUCTION_DOMAIN_NAME : "localhost",
+  API_PATH:               process.env.API_PATH                || "/api",
+  AUTH_PATH:              process.env.API_PATH                || "/api/auth",
 
   // Database
   DB_SERVER_PROTOCOL:     process.env.DB_SERVER_PROTOCOL      || "mongodb",

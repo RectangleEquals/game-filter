@@ -42,7 +42,7 @@ router.post("/login", upload.none(), pp.initializePassport, pp.sessionPassport, 
     sameSite: 'none', 
     secure: true,
     httpOnly: true,
-    domain: '.onrender.com'
+    domain: config.PRODUCTION_DOMAIN_NAME
   });
   res.status(200).json({message: 'Login successful'});
 

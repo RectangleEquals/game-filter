@@ -10,7 +10,6 @@ const router = express.Router();
 const pp = getPassport(router);
 const basepath = '/api/auth';
 
-
 async function handleLogin(req, res, next)
 {
   console.log('Incoming login request...');
@@ -39,11 +38,11 @@ router.get("/", (req, res) => {
 router.post("/login", upload.none(), pp.initializePassport, pp.sessionPassport, handleLogin, async (req, res) => {
   console.log(`User logged in: ${req.userId}`);
   res.cookie('user', req.userId, {
-    path: '/', 
+    path: basepath, 
     sameSite: 'none', 
     secure: true,
     httpOnly: true,
-    domain: config.PRODUCTION_DOMAIN_NAME
+    domain: '.onrender.com'
   });
   res.status(200).json({message: 'Login successful'});
 
@@ -110,74 +109,5 @@ router.post("/logout", upload.none(), async (req, res) =>
     }
   });
 });
-
-
-// Handle login authentication, based on a given provider
-/*
-async function handleLogin(req, res, next)
-{
-  console.log('Incoming login request...');
-  try {
-    if(!(req.query && req.query.provider && req.query.from)) {
-      res.status(400).json({ message: 'Bad login request: Wrong query parameters' });
-      console.warn('> Bad login request: Wrong query parameters')
-      return;
-    }
-    
-    console.log(`> ${basepath} from ${req.ip} - Provider: ${req.query.provider}`);
-
-    let ip = requestIp.getClientIp(req);
-    if(req.query.from !== ip) {
-      //res.status(400).json({ message: 'Bad login request: IP address mismatch' });
-      console.warn(`> [WARNING]: IP address mismatch! Expected '${ip}' got '${req.query.from}'`);
-      //return;
-    }
-
-    // Handle authentication based on requested provider
-    switch(req.query.provider) {
-      case 'discord':
-        res.status(200).json({ message: 'ok', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200' });
-        break;
-      case 'steam':
-        res.status(501).json({ message: 'Provider not yet implemented', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/501' });
-        break;
-      case 'microsoft':
-        res.status(501).json({ message: 'Provider not yet implemented', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/501' });
-        break;
-      case 'epic':
-        res.status(501).json({ message: 'Provider not yet implemented', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/501' });
-        break;
-      default:
-        res.status(400).json({ message: 'Unknown provider', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400' });
-        break;
-    }
-    console.log('> Finished processing login request')
-  } catch(error) {
-    res.status(500).json({ message: error.message });
-    console.error(`> Login error: ${error}`);
-  }
-}
-*/
-
-function isAuthorized(req, res, next)
-{
-  console.log('Checking authorization...');
-
-  // Check if the user is authenticated
-  if (!req.session || !req.session.user) {
-    console.log('> Unauthorized');
-    return res.status(401).send("Unauthorized");
-  }
-
-  // Check if the user has the necessary role
-  if (req.session.user.role !== "admin") {
-    console.log('> Forbidden');
-    return res.status(403).send("Forbidden");
-  }
-
-  // If the user is authenticated and has the necessary role, call the next middleware
-  console.log('> Authorized');
-  next();
-}
 
 module.exports = { basepath, route: router, isAuthorized };

@@ -33,7 +33,7 @@ async function run() {
   console.log('Setting up middlewares...');
   try{
     await useCompression();
-    await useCookieDomainFix();
+    //await useCookieDomainFix();
     await useBodyParser();
     await useCors();
     await useCookieParser();
@@ -54,6 +54,7 @@ async function run() {
   console.log('=== SERVER IS READY ===');
 }
 
+/*
 async function useCookieDomainFix() {
   console.log(`> cookie domain fix (${config.PRODUCTION_DOMAIN_NAME})`);
   server.use((req, res, next) => {
@@ -61,6 +62,7 @@ async function useCookieDomainFix() {
     next();
   });
 }
+*/
 
 // compression middleware
 async function useCompression() {

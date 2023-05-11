@@ -94,7 +94,7 @@ router.get("/verify/:token", async(req, res) => {
     return;
   }
 
-  console.log(`Verification requested from user: ${token}`);
+  console.log(`Verification requested for token: ${token}`);
   res.status(200).send('Verified!');
 });
 
@@ -173,4 +173,4 @@ router.post("/logout", isAuthorized, async (req, res) =>
   res.status(200).send('ok');
 });
 
-module.exports = { basepath, route: router, isAuthorized };
+module.exports = { basepath, router, isAuthorized };

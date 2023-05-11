@@ -10,7 +10,7 @@ const { getPassport, passport } = require('./src/passport');
 const User = require('./src/models/User');
 //const discordStrategy = require('./src/strategies/discord');
 const localStrategy = require('./src/strategies/local');
-const routes = require("./src/routes");
+//const routes = require("./src/routes");
 
 const oneDayInMilliseconds = 86400000;
 
@@ -156,7 +156,7 @@ async function usePassport()
 async function useRoutes() {
   console.log('> routes');
   const auth = require('./src/api/auth');
-  server.use(auth.route);
+  server.use(auth.router);
   // return await routes.use(server, err => {
   //   console.error(err.message);
   //   process.exit(-1);

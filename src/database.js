@@ -1,9 +1,11 @@
 const config = require("./config/config");
 const MongoStore = require("connect-mongo");
 const mongoose = require("mongoose");
+const UserSession = require("./models/UserSession");
 
 let client = undefined;
 let store = undefined;
+let collections = undefined;
 
 const getUrl = (dbName = config.DB_GAMEFILTER_DBNAME) => {
   let auth = `${config.DB_SERVER_USER && config.DB_SERVER_PASS ? `${config.DB_SERVER_USER}:${config.DB_SERVER_PASS}@` : ''}`
@@ -21,7 +23,8 @@ const getStore = () =>
     collectionName: config.DB_SESSION_COLLECTION
   }
 
-  return store = MongoStore.create(cmOptions);
+  store = MongoStore.create(cmOptions);
+  return store;
 }
 
 const getClient = async() =>
@@ -29,7 +32,23 @@ const getClient = async() =>
   if(client !== undefined || client !== null)
     return client;
 
-  return connect();
+  client = connect();
+  return client;
+}
+
+const getCollection = async(name) => {
+  let collection = undefined;
+
+  collections.some(element => {
+    let i = element.namespace.indexOf('.');
+    const namespace = element.namespace.substring(i + 1);
+    if(namespace === name) {
+      collection = element;
+      return true;
+    }
+  });
+
+  return collection;
 }
 
 const connect = async (strictQuery = true) =>
@@ -49,8 +68,10 @@ const connect = async (strictQuery = true) =>
   console.log(`Connecting to database: '${dbUrl}'`);
 
   return client = mongoose.connect(dbUrl, dbOptions)
-  .then((client) => {
+  .then(async (client) => {
     console.log(`Connected to database: '${dbUrl}'`);
+    const db = client.connection.db;
+    collections = await db.collections();
     return client;
   })
   .catch((err) => {
@@ -59,4 +80,40 @@ const connect = async (strictQuery = true) =>
   });
 }
 
-module.exports = { getUrl, getStore, getClient, connect }
+async function validateSessionsForUser(userId, forceDelete = false)
+{
+  let userSession = await UserSession.findOne( { userId: userId });
+  const exists = Boolean(userSession && userSession.sessionId && userSession.userId);
+
+  if(exists) {
+    console.log(`> Validating session ${userSession.sessionId} for user ${userSession.userId}...`);
+    try {
+      const sessionCollection = await getCollection(config.DB_SESSION_COLLECTION);
+      let sessionDoc = await sessionCollection.findOne({ _id: userSession.sessionId });
+      
+      let currentDate = new Date();
+      let expirationDate = currentDate;
+      let expired = sessionDoc === undefined || sessionDoc === null;
+      if(!expired) {
+        expirationDate = new Date(sessionDoc.expires);
+        expired = currentDate >= expirationDate;
+      } else {
+        console.log(`> Session ${userSession.sessionId} has expired`);
+      }
+  
+      if(forceDelete || expired) {
+        let prefixString = forceDelete ? 'Forcefully removing' : 'Removing expired'
+        // Existing session has expired, so we need to destroy it
+        console.log(`> ${prefixString} session ${userSession.sessionId} for user ${userSession.userId}...`);
+        await sessionCollection.deleteOne({ _id: userSession.sessionId });
+        await userSession.deleteOne({ sessionId: userSession.sessionId })
+        prefixString = forceDelete ? 'Forcefully removed' : 'Removed expired'
+        console.log(`> ${prefixString} session ${userSession.sessionId}`);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+}
+
+module.exports = { getUrl, getStore, getClient, getCollection, connect, validateSessionsForUser }

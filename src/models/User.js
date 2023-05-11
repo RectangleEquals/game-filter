@@ -13,6 +13,9 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String
   },
+  verified: {
+    type: Boolean
+  },
   socialLogins: [{
     provider: {
       type: String,

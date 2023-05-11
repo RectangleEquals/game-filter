@@ -1,0 +1,14 @@
+{
+  "email": "gamefilter.owner@gmail.com",
+  "displayName": "Admin",
+  "password": "Mistertee83",
+  "verified": false,
+  "socialLogins": [
+    {
+      "provider": "microsoft",
+      "providerId": "0987654321",
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
+      "refreshToken": "abcdefg"
+    }
+  ]
+}

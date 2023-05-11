@@ -12,7 +12,6 @@ async function use(server, error)
       try {
         server.use(route.default.basepath, route.default.route);
       } catch (err) {
-        throw 'This is a test error in rotes.js!';
         console.warn(`WARNING: Failed to import route: '${route.default.basepath}'`);
         if(err !== undefined)
           error(err);

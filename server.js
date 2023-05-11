@@ -31,12 +31,13 @@ database.connect().then(async (client) =>
 async function run() {
   // setup middlewares
   console.log('Setting up middlewares...');
+
   try{
     await useCompression();
     //await useCookieDomainFix();
     await useBodyParser();
     await useCors();
-    await useCookieParser();
+    //await useCookieParser();
     await useSession();
     await useRequestLogging();
     await useRegenerateFix();
@@ -104,8 +105,8 @@ async function useSession() {
     name: config.SESSION_COOKIE_NAME || 'default',
     cookie: {
       maxAge: expires,
-      httpOnly: true,
-      secure: true,
+      httpOnly: false,
+      secure: false,
       sameSite: 'None'
       // domain: config.PRODUCTION_DOMAIN_NAME
     }
@@ -154,10 +155,12 @@ async function usePassport()
 // routes
 async function useRoutes() {
   console.log('> routes');
-  return await routes.use(server, err => {
-    console.error(err.message);
-    process.exit(-1);
-  });
+  const auth = require('./src/api/auth');
+  server.use(auth.route);
+  // return await routes.use(server, err => {
+  //   console.error(err.message);
+  //   process.exit(-1);
+  // });
 }
 
 // starts the http listen server

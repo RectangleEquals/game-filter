@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
 const UserSessionSchema = new mongoose.Schema({
-  sessionId: { type: String, required: true },
-  userId: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now, expires: '1d' }
+  accessToken: { type: String, required: true, unique: true},
+  sessionId: { type: String, required: true, unique: true },
+  userId: { type: String, required: true, unique: true }
 });
 
 module.exports = mongoose.model('usersessions', UserSessionSchema);

@@ -1,0 +1,22 @@
+{
+  "email": "rectangleequals@gmail.com",
+  "displayName": "Michael Wion",
+  "password": "Mistertee83",
+  "verified": false,
+  "socialLogins": [
+    {
+      "provider": "discord",
+      "providerId": "1234567890",
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
+      "refreshToken": null
+    }
+  ],
+  "preferences": {
+    "releaseDate": "2023-01-01T00:00:00Z",
+    "developer": "Example Game Studio",
+    "publisher": "Example Publisher",
+    "platform": "PC",
+    "platformStore": "Steam",
+    "features": ["Multiplayer", "Controller Support"]
+  }
+}

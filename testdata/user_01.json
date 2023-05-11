@@ -1,0 +1,24 @@
+{
+  "email": "mikeyteevee@gmail.com",
+  "displayName": "Mikey",
+  "password": "Mistertee83",
+  "verified": false,
+  "socialLogins": [
+    {
+      "provider": "discord",
+      "providerId": "12345",
+      "accessToken": "abc123",
+      "refreshToken": null
+    }
+  ],
+  "preferences": {
+    "developer": "Ubisoft",
+    "publisher": "Ubisoft",
+    "platform": "PC",
+    "platformStore": "Steam",
+    "features": [
+      "Multiplayer",
+      "Controller Support"
+    ]
+  }
+}

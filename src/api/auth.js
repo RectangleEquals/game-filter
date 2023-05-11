@@ -1,17 +1,65 @@
 const config = require("../config/config");
 const express = require("express");
 const { getPassport, passport } = require('../passport');
+const { generateAccessToken } = require("../lib/security");
+const database = require("../database");
 const User = require("../models/User");
 const UserSession = require("../models/UserSession");
 const multer = require("multer");
 const upload = multer();
+const Mailer = require("../lib/mailer");
+const path = require('path');
 
 const router = express.Router();
 const pp = getPassport(router);
 const basepath = config.AUTH_PATH;
 
-const oneDayInMilliseconds = 86400000;
-const expires = (config.SESSION_COOKIE_LIFETIME | 0) || oneDayInMilliseconds;
+async function verifyAccessToken(accessToken) {
+  const userSession = await UserSession.findOne({ accessToken });
+  if (!userSession) throw new Error("Unauthorized (Bad Access Token)");
+  return userSession;
+}
+
+function isAuthorized(req, res, next) {
+  console.log("Checking authorization...");
+
+  upload.none()(req, res, (err) => {
+    if (err) {
+      console.log("> Error parsing request body");
+      return res.status(400).json({ message: "Error parsing request body", error: err.message });
+    }
+
+    // Check if the request has a valid access token
+    if (!req.body || !req.body.accessToken) {
+      console.log("> Unauthorized");
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // Verify the access token
+    verifyAccessToken(req.body.accessToken)
+      .then(userSession => {
+        req.userSession = userSession;
+        console.log("> Authorized");
+        next();
+      })
+      .catch(err => {
+        console.log(`> ${error.message}`);
+        return res.status(401).json({ message: "Unauthorized", error: err.message });
+      });
+  });
+}
+
+async function handleRegistration(req, res, next)
+{
+  console.log('Incoming registration request...');
+
+  try {
+    const user = await User.findOne({ email: req.email });
+    next();
+  } catch (err) {
+    res.status(409).send('exists');
+  }
+}
 
 async function handleLogin(req, res, next)
 {
@@ -35,153 +83,94 @@ async function handleLogin(req, res, next)
 }
 
 router.get("/", (req, res) => {
-  res.status(200).json({ message: "ok" });
+  res.status(200).send('ok');
+});
+
+router.get("/verify/:token", async(req, res) => {
+  const token = req.params.token;
+  if(!token) {
+    console.warn(`Bad verification request: ${JSON.stringify(req.query)}`);
+    res.status(400).send('Bad verification request');
+    return;
+  }
+
+  console.log(`Verification requested from user: ${token}`);
+  res.status(200).send('Verified!');
+});
+
+// Creates a new, unverified User and sends them an account verification email
+router.post("/register", upload.none(), handleRegistration, async (req, res) => {
+  // TODO: Incorporate the following:
+  //  - Add error checking for when a user already exists and/or is already verified
+  //  - Add the generated verification token to the User collection for use in the /verify route
+  //  - Add the /verify route as a GET request which checks query params for the token
+  //      and updates the corresponding User `verified` field upon successful verification
+  //  - Add verification to the /login route (making sure only verified users can actually login)
+  try {
+    const token = generateAccessToken(req.body.email, req.body.displayname);
+    Mailer.createFromHtmlFile(
+      config.MAILER_EMAIL_SERVER,
+      config.MAILER_EMAIL_PORT,
+      config.MAILER_EMAIL_USERNAME,
+      config.MAILER_EMAIL_PASSWORD,
+      req.body.email,
+      'GameFilter Account Verification',
+      path.resolve(process.cwd(), 'src', 'assets', 'VerificationEmail.html'),
+      html => {
+        return html.replace(/<a href="#top"/g, `<a href="http://game-filter.com/verify?token=${token}"`);
+      }
+    ).then(mailer => {
+      mailer.send().then(result => {
+        if(result !== undefined && result !== null && result !== false)
+          res.status(200).send('ok');
+        else
+          res.status(400).send(result.error.message);
+      }).catch(err => {
+        res.status(400).send(err.message);
+      });
+    }).catch(err => {
+      res.status(400).send(err.message);
+    });
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
 });
 
 router.post("/login", upload.none(), pp.initializePassport, pp.sessionPassport, handleLogin, async (req, res) =>
 {
-  console.log(`User logged in: ${req.userId}`);
+  console.log(`Login requested from user: ${req.userId}`);
+  // res.setHeader('Access-Control-Allow-Origin', 'http://gamefilter.servegame.com');
 
-  res.cookie(config.SESSION_COOKIE_NAME || "default", req.userId, {
-    path: config.API_PATH,
-    maxAge: expires,
-    httpOnly: true,
-    secure: true,
-    sameSite: 'None'
-    // domain: config.PRODUCTION_DOMAIN_NAME
-  });
-  res.status(200).json({message: 'Login successful'});
-
-  // Update the database
   try {
-    console.log(`Updating database for user ${req.userId}...`);
-    const userSession = await UserSession.findOneAndUpdate(
-      { sessionId: req.sessionID },
-      { $set: { sessionId: req.sessionID, userId: req.userId } },
+    // Validate the session
+    await database.validateSessionsForUser(req.userId, true);
+    
+    // Update the database
+    let accessToken = generateAccessToken(req.userId, req.sessionID);
+    console.log(`Updating session for user ${req.userId}...`);
+    userSession = await UserSession.findOneAndUpdate(
+      { accessToken: accessToken },
+      { $set: { accessToken: accessToken, sessionId: req.sessionID, userId: req.userId } },
       { upsert: true, new: true }
     );
+    req.session.save();
     console.log(`UserSession document updated: ${userSession}`);
+
+    // Send the response with an access token back to the client
+    res.status(200).json({ accessToken: accessToken });
   } catch (err) {
     console.error(err);
+    res.status(400);
   }
-
-  req.session.save();
 });
 
-router.post("/logout", upload.none(), async (req, res) =>
+router.post("/logout", isAuthorized, async (req, res) =>
 {
-  if(!req.session)
-    return res.status(400).json({ message: 'Already destroyed' });
-  if(!req.body || !req.body.id || !User.findById(req.body.id))
-    return res.status(400).json({ message: 'Invalid User ID' });
-  
-  const sessionId = req.sessionID;
-  const userId = req.body.id;
-  const store = req.sessionStore;
-  console.log(`Destroying session for user ${userId}...`);
- 
-  req.session.destroy(async(err) =>
-  {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ message: err.message });
-    }
-
-    // Update the database
-    try {
-      const userSession = await UserSession.findOne({ userId: userId }).exec();
-  
-      if (!userSession) {
-        console.warn(`UserSession not found for user ${userId}!`);
-        return res.status(400).json({ message: `UserSession not found for user ${userId}!` });
-      }
-
-      console.log(`Removing session documents from database for user ${userId}...`);
-      store.destroy(userSession.sessionId, async err => {
-        if(err) {
-          console.warn(`Failed to remove document from session collection! ${err}`);
-          return res.status(400).json({ message: `Failed to remove document from session collection! ${err}` });
-        }
-
-        await userSession.deleteOne({ sessionId: sessionId });
-        res.clearCookie(config.SESSION_COOKIE_NAME || "default");
-        //res.clearCookie("user");
-        console.warn(`Session documents removed for user ${userId}!`);
-        return res.status(200).json({ message: "ok" });
-      });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: err.message });
-    }
-  });
-});
-
-// Handle login authentication, based on a given provider
-/*
-async function handleLogin(req, res, next)
-{
-  console.log('Incoming login request...');
-  try {
-    if(!(req.query && req.query.provider && req.query.from)) {
-      res.status(400).json({ message: 'Bad login request: Wrong query parameters' });
-      console.warn('> Bad login request: Wrong query parameters')
-      return;
-    }
+  if(!req.userSession || !req.userSession.userId)
+    return res.status(400).json({ message: 'Unknown User' });
     
-    console.log(`> ${basepath} from ${req.ip} - Provider: ${req.query.provider}`);
-
-    let ip = requestIp.getClientIp(req);
-    if(req.query.from !== ip) {
-      //res.status(400).json({ message: 'Bad login request: IP address mismatch' });
-      console.warn(`> [WARNING]: IP address mismatch! Expected '${ip}' got '${req.query.from}'`);
-      //return;
-    }
-
-    // Handle authentication based on requested provider
-    switch(req.query.provider) {
-      case 'discord':
-        res.status(200).json({ message: 'ok', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200' });
-        break;
-      case 'steam':
-        res.status(501).json({ message: 'Provider not yet implemented', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/501' });
-        break;
-      case 'microsoft':
-        res.status(501).json({ message: 'Provider not yet implemented', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/501' });
-        break;
-      case 'epic':
-        res.status(501).json({ message: 'Provider not yet implemented', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/501' });
-        break;
-      default:
-        res.status(400).json({ message: 'Unknown provider', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400' });
-        break;
-    }
-    console.log('> Finished processing login request')
-  } catch(error) {
-    res.status(500).json({ message: error.message });
-    console.error(`> Login error: ${error}`);
-  }
-}
-*/
-
-function isAuthorized(req, res, next)
-{
-  console.log('Checking authorization...');
-
-  // Check if the user is authenticated
-  if (!req.session || !req.session.user) {
-    console.log('> Unauthorized');
-    return res.status(401).send("Unauthorized");
-  }
-
-  // Check if the user has the necessary role
-  if (req.session.user.role !== "admin") {
-    console.log('> Forbidden');
-    return res.status(403).send("Forbidden");
-  }
-
-  // If the user is authenticated and has the necessary role, call the next middleware
-  console.log('> Authorized');
-  next();
-}
+  await database.validateSessionsForUser(req.userSession.userId, true);
+  res.status(200).send('ok');
+});
 
 module.exports = { basepath, route: router, isAuthorized };

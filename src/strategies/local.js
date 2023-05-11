@@ -7,7 +7,7 @@ const strategy = new LocalStrategy(
     usernameField: 'email',     // The name of the field for email
     passwordField: 'password',  // The name of the field for password
   },
-  async function (email, password, done) {
+  async (email, password, done) => {
     try {
       const user = await User.findOne({ email: email, password: password });
       if (!user) {
@@ -24,6 +24,8 @@ const use = () =>
 {
   passport.use(strategy);
 
+  // TODO: Figure out why these functions never get called
+  /*
   passport.serializeUser((user, done) => {
     console.log('(local) Serializing User...');
     done(null, user.id);
@@ -49,6 +51,7 @@ const use = () =>
         return done(err);
     }
   });
+  */
 }
 
 module.exports = { strategy, use };

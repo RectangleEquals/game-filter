@@ -12,6 +12,18 @@ const User = require('./src/models/User');
 const localStrategy = require('./src/strategies/local');
 //const routes = require("./src/routes");
 
+
+
+// const { generateAccessToken } = require("../lib/security");
+// const UserSession = require("../models/UserSession");
+// const multer = require("multer");
+// const upload = multer();
+// const Mailer = require("../lib/mailer");
+// const path = require('path');
+let pp;
+
+
+
 const oneDayInMilliseconds = 86400000;
 
 // connect to remote database
@@ -33,14 +45,14 @@ async function run() {
   console.log('Setting up middlewares...');
 
   try{
-    await useCompression();
+    //await useCompression();
     //await useCookieDomainFix();
     await useBodyParser();
     await useCors();
     //await useCookieParser();
     await useSession();
-    await useRequestLogging();
-    await useRegenerateFix();
+    //await useRequestLogging();
+    //await useRegenerateFix();
     await usePassport();
     await useRoutes();
   } catch(err) {
@@ -74,8 +86,8 @@ async function useCompression() {
 // bodyparser (NOTE: As of Express v4.16, this is now built in)
 async function useBodyParser() {
   console.log('> bodyparser');
-  server.use(express.json());
   server.use(express.urlencoded({extended : false}));
+  server.use(express.json());
 }
 
 // cors
@@ -145,7 +157,7 @@ async function useRegenerateFix()
 async function usePassport()
 {
   console.log('> passport');
-  getPassport(server);
+  pp = getPassport(server);
 
   localStrategy.use();
   //discordStrategy.use();
@@ -156,7 +168,7 @@ async function usePassport()
 async function useRoutes() {
   console.log('> routes');
   const auth = require('./src/api/auth');
-  server.use(auth.router);
+  server.use(auth);
   // return await routes.use(server, err => {
   //   console.error(err.message);
   //   process.exit(-1);

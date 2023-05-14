@@ -16,6 +16,9 @@ const userSchema = new mongoose.Schema({
   verified: {
     type: Boolean
   },
+  registrationToken: {
+    type: String
+  },
   socialLogins: [{
     provider: {
       type: String,

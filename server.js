@@ -33,11 +33,6 @@ async function run()
       console.log('Initializing server...');
       await init();
 
-      server.get("/", async(req, res) => {
-        console.error('Called GET on /');
-        res.status(200).json({ status: "200", message: "ok" });
-      });
-
       console.log('Returning server...');
       return server;
     }).catch(err => {
@@ -178,8 +173,17 @@ async function usePassport()
 // routes
 async function useRoutes() {
   console.log('> routes');
+
+  // Client Root
+  const clientRoot = path.resolve(process.cwd(), 'client', 'dist');
+  server.get(express.static(clientRoot), async(req, res) => {
+    console.log('Serving client...');
+  });
+
+  // Auth
   const auth = require('./src/api/auth');
   server.use(auth);
+
   // return await routes.use(server, err => {
   //   console.error(err.message);
   //   process.exit(-1);

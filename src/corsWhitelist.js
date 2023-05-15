@@ -1,17 +1,23 @@
 const config = require("./config/config");
 const cors = require("cors");
 const url = require("url");
-const path = require("path");
-const fs = require("fs");
 
 let allowedOrigins = [];
 
 function matchDomain(arr, domain, wildcard = '*') {
-  // Escape any special characters in the wildcard string
-  const escapedWildcard = wildcard.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  // Replace http:// and https:// prefixes with a wildcard
+  const arrWithWildcards = arr.map((item) => {
+    return item.replace(/^https?:\/\//, `*://`).replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  });
 
-  for (let i = 0; i < arr.length; i++) {
-    const regex = new RegExp('^' + arr[i].replace(new RegExp(escapedWildcard, 'g'), '.*') + '$');
+  // Check that domain is in the correct format
+  const domainRegex = /^[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_\.]+$/;
+  if (!domainRegex.test(domain)) {
+    return false;
+  }
+
+  for (let i = 0; i < arrWithWildcards.length; i++) {
+    const regex = new RegExp('^' + arrWithWildcards[i].replace(new RegExp(wildcard, 'g'), '.*') + '$');
     if (regex.test(domain)) {
       return true;
     }
@@ -21,26 +27,13 @@ function matchDomain(arr, domain, wildcard = '*') {
 
 const setup = async(server) =>
 {
-  let whitelistFile = path.resolve(process.cwd(), "src", "config", config.CORS_WHITELIST_FILENAME);
-  if(config.NODE_ENV === "production")
-    whitelistFile = `/etc/secrets/${config.CORS_WHITELIST_FILENAME}`;
+  const lines = config.CORS_WHITELIST.trim().split(",");
+  for (let line of lines) {
+    const trimmedLine = line.trim();
+    allowedOrigins.push(trimmedLine);
+  }
 
-  // Load CORS whitelist from file
-  fs.readFile(whitelistFile, "utf-8", (err, data) => {
-    if (err) {
-      console.error("Error reading whitelist:", err);
-      return;
-    }
-
-    // Parse each line of the file as a regular expression and add it to the array
-    const lines = data.trim().split("\n");
-    for (let line of lines) {
-      const trimmedLine = line.trim();
-      allowedOrigins.push(trimmedLine);
-    }
-
-    console.log(`[Allowed Origins]:\n${allowedOrigins}`);
-  });
+  console.log(`[Allowed Origins]:\n${allowedOrigins}`);
 
   server.use(function (req, res, next) {
     req.headers.origin = req.headers.origin || req.headers.host;

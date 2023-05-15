@@ -10,7 +10,8 @@ process.env.NODE_ENV=               process.env.NODE_ENV                || "prod
 process.env.PORT=                   process.env.PORT                    || 4000
 process.env.PRODUCTION_DOMAIN_NAME= process.env.NODE_ENV === "production" ? process.env.PRODUCTION_DOMAIN_NAME : "localhost"
 process.env.API_PATH=               process.env.API_PATH                || "/api"
-process.env.AUTH_PATH=              process.env.AUTH_PATH               || "/api/auth"
+process.env.AUTH_PATH=              process.env.AUTH_PATH               || "/api/auth",
+process.env.CORS_WHITELIST=         process.env.CORS_WHITELIST          || "localhost"
 
 // Database
 process.env.DB_SERVER_PROTOCOL=     process.env.DB_SERVER_PROTOCOL      || "mongodb"

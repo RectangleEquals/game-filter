@@ -16,13 +16,13 @@ const oneDayInMilliseconds = 86400000;
 
 async function run()
 {
-  console.error('Running server...');
+  console.log('Running server...');
 
   try {
     // connect to remote database
     database.getClient().then(async (client) =>
     {
-      console.error('Testing connection...');
+      console.log('Testing connection...');
 
       // don't run the server without a valid database connection
       if(client === undefined || client === null) {
@@ -31,7 +31,7 @@ async function run()
       }
 
       // init server
-      console.error('Initializing server...');
+      console.log('Initializing server...');
       await init();
 
       server.get("/", async(req, res) => {
@@ -39,7 +39,7 @@ async function run()
         res.status(200).json({ status: "200", message: "ok" });
       });
 
-      console.error('Returning server...');
+      console.log('Returning server...');
       return server;
     }).catch(err => {
       console.error(`[SERVER]: ${err.message}`);
@@ -66,7 +66,7 @@ async function init() {
     await usePassport();
     await useRoutes();
   } catch(err) {
-    console.error(err);
+    console.error(`[SERVER (init)]: ${err.message}`);
     process.exit(-1);
   }
 

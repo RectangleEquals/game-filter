@@ -70,12 +70,12 @@ const connect = async(strictQuery = true) =>
       console.log(`Connected to database: '${dbUrl}'`);
       client = newClient;
     })
-    .catch((err) => {
-      console.error(`Error connecting to database: '${dbUrl}': ${err}`);
+    .catch(err => {
+      console.error(`[DATABASE (connect)]: Error connecting to database: '${dbUrl}': ${err.message}`);
       client = undefined;
     });
   } catch (error) {
-    console.error(`[DATABASE]: ${error.message}`);
+    console.error(`[DATABASE (connect)]: ${error.message}`);
   }
 }
 
@@ -110,7 +110,7 @@ async function validateSessionsForUser(userId, forceDelete = false)
         console.log(`> ${prefixString} session ${userSession.sessionId}`);
       }
     } catch (err) {
-      console.error(err);
+      console.error(`[DATABASE (validateSessionsForUser)]: ${err.message}`);
     }
   }
 }

@@ -342,7 +342,7 @@ router.post("/api/auth/login", upload.none(), pp.initializePassport, pp.sessionP
     // Send the response with an access token back to the client
     res.status(200).json({ accessToken: accessToken });
   } catch (err) {
-    console.error(err);
+    console.error(err.message);
     res.status(400).send(err.message);
   }
 });

@@ -72,10 +72,10 @@ const connect = async(strictQuery = true) =>
     })
     .catch((err) => {
       console.error(`Error connecting to database: '${dbUrl}': ${err}`);
-      return undefined;
+      client = undefined;
     });
   } catch (error) {
-    console.error(error.message);
+    console.error(`[DATABASE]: ${error.message}`);
   }
 }
 

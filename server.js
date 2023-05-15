@@ -14,34 +14,39 @@ const localStrategy = require('./src/strategies/local');
 
 const oneDayInMilliseconds = 86400000;
 
-async function run() {
+async function run()
+{
   console.error('Running server...');
 
-  // connect to remote database
-  database.getClient().then(async (client) =>
-  {
-    console.error('Testing connection...');
+  try {
+    // connect to remote database
+    database.getClient().then(async (client) =>
+    {
+      console.error('Testing connection...');
 
-    // don't run the server without a valid database connection
-    if(client === undefined || client === null) {
-      console.error('Failed to connect to database!');
-      process.exit(-1);
-    }
+      // don't run the server without a valid database connection
+      if(client === undefined || client === null) {
+        console.error('Failed to connect to database!');
+        process.exit(-1);
+      }
 
-    // init server
-    console.error('Initializing server...');
-    await init();
+      // init server
+      console.error('Initializing server...');
+      await init();
 
-    server.get("/", async(req, res) => {
-      console.error('Called GET on /');
-      res.status(200).json({ status: "200", message: "ok" });
+      server.get("/", async(req, res) => {
+        console.error('Called GET on /');
+        res.status(200).json({ status: "200", message: "ok" });
+      });
+
+      console.error('Returning server...');
+      return server;
+    }).catch(err => {
+      console.error(`[SERVER]: ${err.message}`);
     });
-
-    console.error('Returning server...');
-    return server;
-  }).catch(err => {
-    console.error(`Fatal database error: ${err.message}`);
-  });
+  } catch (error) {
+    console.error(`[SERVER (root)]: ${err.message}`);
+  }
 }
 
 // determines middleware priorities and starts server

@@ -14,23 +14,33 @@ const localStrategy = require('./src/strategies/local');
 
 const oneDayInMilliseconds = 86400000;
 
-// connect to remote database
-database.connect().then(async (client) =>
-{
-  // don't run the server without a valid database connection
-  if(client === undefined || client === null) {
-    console.error("Failed to connect to database!");
-    process.exit(-1);
-  }
+async function run() {
+  console.error('Running server...');
 
-  // run server
-  await run();
-}).catch(err => {
-  console.error(`Fatal database error: ${err.message}`);
-});
+  // connect to remote database
+  database.getClient().then(async (client) =>
+  {
+    console.error('Testing connection...');
+
+    // don't run the server without a valid database connection
+    if(client === undefined || client === null) {
+      console.error('Failed to connect to database!');
+      process.exit(-1);
+    }
+
+    // init server
+    console.error('Initializing server...');
+    await init();
+
+    console.error('Returning server...');
+    return server;
+  }).catch(err => {
+    console.error(`Fatal database error: ${err.message}`);
+  });
+}
 
 // determines middleware priorities and starts server
-async function run() {
+async function init() {
   // setup middlewares
   console.log('Setting up middlewares...');
 
@@ -171,4 +181,4 @@ async function listen()
   server.listen(config.PORT, () => console.log(`Server running on port ${config.PORT}`));
 };
 
-module.exports = server;
+module.exports = run;

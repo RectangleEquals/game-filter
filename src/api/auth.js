@@ -267,6 +267,10 @@ router.post("/api/auth/register", upload.none(), handleRegistration, async (req,
   }
 });
 
+router.get("/", async(req, res) => {
+  res.status(200).json({ status: "200", message: "ok" });
+});
+
 router.get("/api/auth/verify/:token", async(req, res) => {
   try {
     const token = req.params.token;

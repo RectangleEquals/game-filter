@@ -1,4 +1,4 @@
-# Game Filter (backend)
+# Game Filter
 
 A social web application to centralize, filter, rate and compare video games.
 

@@ -5,19 +5,11 @@ const url = require("url");
 let allowedOrigins = [];
 
 function matchDomain(arr, domain, wildcard = '*') {
-  // Replace http:// and https:// prefixes with a wildcard
-  const arrWithWildcards = arr.map((item) => {
-    return item.replace(/^https?:\/\//, `*://`).replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-  });
+  // Escape any special characters in the wildcard string
+  const escapedWildcard = wildcard.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 
-  // Check that domain is in the correct format
-  const domainRegex = /^[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_\.]+$/;
-  if (!domainRegex.test(domain)) {
-    return false;
-  }
-
-  for (let i = 0; i < arrWithWildcards.length; i++) {
-    const regex = new RegExp('^' + arrWithWildcards[i].replace(new RegExp(wildcard, 'g'), '.*') + '$');
+  for (let i = 0; i < arr.length; i++) {
+    const regex = new RegExp('^' + arr[i].replace(new RegExp(escapedWildcard, 'g'), '.*') + '$');
     if (regex.test(domain)) {
       return true;
     }

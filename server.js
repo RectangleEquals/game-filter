@@ -12,18 +12,6 @@ const User = require('./src/models/User');
 const localStrategy = require('./src/strategies/local');
 //const routes = require("./src/routes");
 
-
-
-// const { generateAccessToken } = require("../lib/security");
-// const UserSession = require("../models/UserSession");
-// const multer = require("multer");
-// const upload = multer();
-// const Mailer = require("../lib/mailer");
-// const path = require('path');
-let pp;
-
-
-
 const oneDayInMilliseconds = 86400000;
 
 // connect to remote database
@@ -37,6 +25,8 @@ database.connect().then(async (client) =>
 
   // run server
   await run();
+}).catch(err => {
+  console.error(`Fatal database error: ${err.message}`);
 });
 
 // determines middleware priorities and starts server
@@ -157,7 +147,7 @@ async function useRegenerateFix()
 async function usePassport()
 {
   console.log('> passport');
-  pp = getPassport(server);
+  getPassport(server);
 
   localStrategy.use();
   //discordStrategy.use();

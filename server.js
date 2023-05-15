@@ -47,6 +47,8 @@ async function run()
   } catch (error) {
     console.error(`[SERVER (root)]: ${err.message}`);
   }
+
+  return server;
 }
 
 // determines middleware priorities and starts server
@@ -191,4 +193,4 @@ async function listen()
   server.listen(config.PORT, () => console.log(`Server running on port ${config.PORT}`));
 };
 
-module.exports = run();
+module.exports = run().then(srv => srv).catch(err => console.error(`[MAIN]: Fatal error: ${err.message}`));

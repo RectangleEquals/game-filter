@@ -19,7 +19,7 @@ const getStore = () =>
   
   const cmOptions = {
     mongoUrl: getUrl(),
-    clientPromise: connect(),
+    clientPromise: getClient(),
     collectionName: config.DB_SESSION_COLLECTION
   }
 
@@ -51,33 +51,34 @@ const getCollection = async(name) => {
   return collection;
 }
 
-const connect = async (strictQuery = true) =>
+const connect = (strictQuery = true) =>
 {
-  if(client !== undefined && client !== null)
-    return client;
+  try {
+    if(client !== undefined && client !== null)
+      return client;
 
-  const dbOptions = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
+    const dbOptions = {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    }
+
+    mongoose.set('strictQuery', strictQuery);
+
+    // Connect to MongoDB
+    const dbUrl = getUrl();
+    console.log(`Connecting to database: '${dbUrl}'`);
+
+    mongoose.connect(dbUrl, dbOptions).then(async (newClient) => {
+      console.log(`Connected to database: '${dbUrl}'`);
+      client = newClient;
+    })
+    .catch((err) => {
+      console.error(`Error connecting to database: '${dbUrl}': ${err}`);
+      return undefined;
+    });
+  } catch (error) {
+    console.error(error.message);
   }
-
-  mongoose.set('strictQuery', strictQuery);
-
-  // Connect to MongoDB
-  const dbUrl = getUrl();
-  console.log(`Connecting to database: '${dbUrl}'`);
-
-  return client = mongoose.connect(dbUrl, dbOptions)
-  .then(async (client) => {
-    console.log(`Connected to database: '${dbUrl}'`);
-    const db = client.connection.db;
-    collections = await db.collections();
-    return client;
-  })
-  .catch((err) => {
-    console.error(`Error connecting to database: '${dbUrl}': ${err}`);
-    return undefined;
-  });
 }
 
 async function validateSessionsForUser(userId, forceDelete = false)
@@ -100,7 +101,7 @@ async function validateSessionsForUser(userId, forceDelete = false)
       } else {
         console.log(`> Session ${userSession.sessionId} has expired`);
       }
-  
+
       if(forceDelete || expired) {
         let prefixString = forceDelete ? 'Forcefully removing' : 'Removing expired'
         // Existing session has expired, so we need to destroy it

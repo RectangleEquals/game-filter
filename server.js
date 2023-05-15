@@ -186,4 +186,4 @@ async function listen()
   server.listen(config.PORT, () => console.log(`Server running on port ${config.PORT}`));
 };
 
-module.exports = run;
+module.exports = run();

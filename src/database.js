@@ -29,10 +29,8 @@ const getStore = () =>
 
 const getClient = async() =>
 {
-  if(client !== undefined || client !== null)
-    return client;
-
-  client = connect();
+  if(client === undefined || client === null)
+    await connect();
   return client;
 }
 
@@ -51,7 +49,7 @@ const getCollection = async(name) => {
   return collection;
 }
 
-const connect = (strictQuery = true) =>
+const connect = async(strictQuery = true) =>
 {
   try {
     if(client !== undefined && client !== null)
@@ -68,7 +66,7 @@ const connect = (strictQuery = true) =>
     const dbUrl = getUrl();
     console.log(`Connecting to database: '${dbUrl}'`);
 
-    mongoose.connect(dbUrl, dbOptions).then(async (newClient) => {
+    await mongoose.connect(dbUrl, dbOptions).then(async (newClient) => {
       console.log(`Connected to database: '${dbUrl}'`);
       client = newClient;
     })

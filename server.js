@@ -32,6 +32,11 @@ async function run() {
     console.error('Initializing server...');
     await init();
 
+    server.get("/", async(req, res) => {
+      console.error('Called GET on /');
+      res.status(200).json({ status: "200", message: "ok" });
+    });
+
     console.error('Returning server...');
     return server;
   }).catch(err => {

@@ -43,7 +43,8 @@ async function run()
 
   // Build the client
   console.log('Building client...');
-  execute(process.cwd(), 'npm --version', true);
+  const rootDir = process.cwd();
+  execute(path.join(rootDir, 'client'), `${path.join(rootDir, 'npm')} run build`, true);
 
   // Connect to remote database and init server
   try {

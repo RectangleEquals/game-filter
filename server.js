@@ -16,25 +16,31 @@ const { spawnSync  } = require('child_process');
 
 const oneDayInMilliseconds = 86400000;
 
+function execute(cwd, command, exitOnFail = false) {
+  try {
+    console.log(`Executing command ${command} in path ${cwd}...`);
+    const output = spawnSync(command.split(' ')[0], command.split(' ').slice(1), { cwd, stdio: 'inherit' });
+
+    if (output.status === 0) {
+      console.log(`[Output (${command})]: ${output.stdout}`);
+    } else {
+      console.error(`[Output (${command} error): ${output.error}`);
+      console.log(`[Output (${command}) stderror]: ${output.stderr}`);
+      if(exitOnFail)
+        process.exit(1);
+    }
+  } catch (error) {
+    console.error(`[Command (${command} error): ${error.message}`);
+  }
+}
+
 async function run()
 {
   console.log('Starting server...');
 
   // Build the client
-  try {
-    console.log('Building client...');
-    const buildOutput = spawnSync('npx', ['vite', 'build'], { cwd: path.join(process.cwd(), 'client'), stdio: 'inherit' });
-
-    if (buildOutput.status === 0) {
-      console.log(`[Build Output]: ${buildOutput.stdout}`);
-    } else {
-      console.error('Failed to build client:', buildOutput.error);
-      console.log(`[Build Output]: ${buildOutput.stderr}`);
-      process.exit(1);
-    }
-  } catch (error) {
-    console.error('[Build Error]:', error);
-  }
+  console.log('Building client...');
+  execute(path.resolve('client'), 'npm vite build');
 
   // Connect to remote database and init server
   try {

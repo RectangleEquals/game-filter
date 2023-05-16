@@ -40,7 +40,7 @@ async function run()
 
   // Build the client
   console.log('Building client...');
-  execute(path.resolve('client'), 'npm vite build');
+  execute(path.resolve('client'), 'npx vite build');
 
   // Connect to remote database and init server
   try {

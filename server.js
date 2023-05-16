@@ -7,6 +7,7 @@ const corsWhitelist = require("./src/corsWhitelist");
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const { getPassport, passport } = require('./src/passport');
+const fs = require('fs');
 const path = require('path');
 //const discordStrategy = require('./src/strategies/discord');
 const localStrategy = require('./src/strategies/local');
@@ -177,6 +178,7 @@ async function useRoutes() {
 
   // Client Root
   const clientRoot = path.resolve(process.cwd(), 'client', 'dist');
+  console.log(`>> Client '${clientRoot}' exists?... ${fs.existsSync(clientRoot) ? 'YES' : 'NO'}`);
   server.get(express.static(clientRoot), async(req, res) => {
     console.log('Serving client...');
   });

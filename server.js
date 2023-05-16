@@ -12,7 +12,7 @@ const path = require('path');
 //const discordStrategy = require('./src/strategies/discord');
 const localStrategy = require('./src/strategies/local');
 //const routes = require("./src/routes");
-const { execSync } = require('child_process');
+const { spawnSync  } = require('child_process');
 
 const oneDayInMilliseconds = 86400000;
 

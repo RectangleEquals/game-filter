@@ -23,7 +23,7 @@ async function run()
   try {
     // Build client
     console.log('Building client...');
-    execSync('cd client && npm run build-client', { stdio: 'inherit' });
+    execSync('cd client && npm run build', { stdio: 'inherit' });
     console.log('Client built successfully.');
 
     // connect to remote database

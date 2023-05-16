@@ -12,7 +12,6 @@ const path = require('path');
 //const discordStrategy = require('./src/strategies/discord');
 const localStrategy = require('./src/strategies/local');
 //const routes = require("./src/routes");
-const os = require('os');
 const { execSync } = require('child_process');
 
 const oneDayInMilliseconds = 86400000;
@@ -21,16 +20,17 @@ async function run()
 {
   console.log('Starting server...');
 
+  // Build the client
   try {
-    const platform = os.platform();
-    console.log('Operating System:', platform);
-
-        // Build client
     console.log('Building client...');
-    execSync('cd client && ls', { stdio: 'inherit' });
-    //console.log('Client built successfully.');
+    const output = execSync('cd client && ls', { encoding: 'utf-8' });
+    console.log('[Build Output]:', output);
+  } catch (error) {
+    console.error('[Build Error]:', error);
+  }
 
-    // connect to remote database
+  // Connect to remote database and init server
+  try {
     database.getClient().then(async (client) =>
     {
       console.log('Testing connection...');

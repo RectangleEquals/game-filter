@@ -44,7 +44,7 @@ async function run()
   // Build the client
   console.log('Building client...');
   const rootDir = process.cwd();
-  execute(path.join(rootDir, 'client'), `${path.join(rootDir, 'npm')} run build`, true);
+  execute(path.join(rootDir, 'client'), `${rootDir}/npx vite build`, true);
 
   // Connect to remote database and init server
   try {

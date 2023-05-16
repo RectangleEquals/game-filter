@@ -7,6 +7,7 @@ const corsWhitelist = require("./src/corsWhitelist");
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const { getPassport, passport } = require('./src/passport');
+const path = require('path');
 //const discordStrategy = require('./src/strategies/discord');
 const localStrategy = require('./src/strategies/local');
 //const routes = require("./src/routes");

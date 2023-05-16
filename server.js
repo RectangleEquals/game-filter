@@ -18,7 +18,7 @@ const oneDayInMilliseconds = 86400000;
 
 function execute(cwd, command, exitOnFail = false) {
   try {
-    console.log(`Executing command '${command}' in path ${cwd}...`);
+    console.log(`Executing command '${command}' in path '${cwd}'...`);
     const output = spawnSync(command.split(' ')[0], command.split(' ').slice(1), { cwd, stdio: 'inherit' });
 
     if (output.status === 0) {
@@ -43,7 +43,7 @@ async function run()
 
   // Build the client
   console.log('Building client...');
-  execute(process.cwd(), 'cd client ; ls', true);
+  execute(process.cwd(), 'npm --version', true);
 
   // Connect to remote database and init server
   try {

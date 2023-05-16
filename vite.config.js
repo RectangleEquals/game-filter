@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import path from 'path';
 
@@ -12,10 +12,10 @@ export default defineConfig({
   publicDir: path.join(process.cwd(), 'public'),
   resolve: {
     alias: {
-      '@': path.resolve(process.cwd(), './src'),
-      'assets': path.resolve(process.cwd(), './src/assets'),
-      'components': path.resolve(process.cwd(), './src/Components'),
-      'utils': path.resolve(process.cwd(), './src/utility'),
+      '@': path.resolve(process.cwd(), 'client/src'),
+      'assets': path.resolve(process.cwd(), 'client/src/assets'),
+      'components': path.resolve(process.cwd(), 'client/src/Components'),
+      'utils': path.resolve(process.cwd(), 'client/src/utility'),
       'react-router-dom': path.resolve(process.cwd(), 'node_modules/react-router-dom'),
       '~bootstrap': path.resolve(process.cwd(), 'node_modules/react-bootstrap')
     }

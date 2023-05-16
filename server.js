@@ -16,6 +16,33 @@ const { spawnSync  } = require('child_process');
 
 const oneDayInMilliseconds = 86400000;
 
+function findNpm()
+{
+  console.log('Searching for NPM...');
+
+  // Define the command to search for npm using find and which
+  const command = 'find / -type d -exec sh -c "cd {} && (which npm >/dev/null 2>&1 && echo \'{}: npm found\' || true)" \\;';
+
+  // Execute the command using spawnSync
+  const result = spawnSync('sh', ['-c', command]);
+
+  // Check for errors and output
+  if (result.error) {
+    console.error('Error:', result.error.message);
+  } else {
+    const output = result.stdout.toString();
+    const errors = result.stderr.toString();
+
+    if (output) {
+      console.log('Output:', output);
+    }
+
+    if (errors) {
+      console.error('Errors:', errors);
+    }
+  }
+}
+
 async function run()
 {
   console.log('Starting server...');
@@ -23,7 +50,8 @@ async function run()
   // Build the client
   try {
     console.log('Building client...');
-    const buildOutput = spawnSync('ls', { cwd: path.join(process.cwd(), 'client'), stdio: 'inherit' });
+    findNpm();
+    const buildOutput = spawnSync('npm', ['run', 'build'], { cwd: path.join(process.cwd(), 'client'), stdio: 'inherit' });
 
     if (buildOutput.status === 0) {
       console.log(`[Build Output]: ${buildOutput.stdout}`);

@@ -18,20 +18,20 @@ const oneDayInMilliseconds = 86400000;
 
 function execute(cwd, command, exitOnFail = false) {
   try {
-    console.log(`Executing command ${command} in path ${cwd}...`);
+    console.log(`Executing command '${command}' in path ${cwd}...`);
     const output = spawnSync(command.split(' ')[0], command.split(' ').slice(1), { cwd, stdio: 'inherit' });
 
     if (output.status === 0) {
-      console.log(`[Output (${command})]: ${output.stdout}`);
+      console.log(`[Output ('${command}')]: ${output.stdout}`);
       return true;
     } else {
-      console.error(`[Output (${command} error): ${output.error}`);
-      console.log(`[Output (${command}) stderror]: ${output.stderr}`);
+      console.error(`[Output ('${command}' error): ${output.error}`);
+      console.log(`[Output ('${command}') stderror]: ${output.stderr}`);
       if(exitOnFail)
         process.exit(1);
     }
   } catch (error) {
-    console.error(`[Command (${command} error): ${error.message}`);
+    console.error(`[Command ('${command}' error): ${error.message}`);
   }
 
   return false;
@@ -43,7 +43,7 @@ async function run()
 
   // Build the client
   console.log('Building client...');
-  execute(path.resolve('/'), 'cd client ; ls', true);
+  execute(process.cwd(), 'cd client ; ls', true);
 
   // Connect to remote database and init server
   try {

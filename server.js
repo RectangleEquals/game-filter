@@ -23,6 +23,7 @@ function execute(cwd, command, exitOnFail = false) {
 
     if (output.status === 0) {
       console.log(`[Output (${command})]: ${output.stdout}`);
+      return true;
     } else {
       console.error(`[Output (${command} error): ${output.error}`);
       console.log(`[Output (${command}) stderror]: ${output.stderr}`);
@@ -32,6 +33,8 @@ function execute(cwd, command, exitOnFail = false) {
   } catch (error) {
     console.error(`[Command (${command} error): ${error.message}`);
   }
+
+  return false;
 }
 
 async function run()
@@ -40,7 +43,8 @@ async function run()
 
   // Build the client
   console.log('Building client...');
-  execute(path.resolve('client'), 'npx vite build');
+  execute(path.resolve('/'), '/usr/bin/npm --version', true);
+  execute(path.resolve('client'), '/usr/bin/npm vite build', true);
 
   // Connect to remote database and init server
   try {

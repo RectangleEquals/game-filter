@@ -12,6 +12,7 @@ const path = require('path');
 //const discordStrategy = require('./src/strategies/discord');
 const localStrategy = require('./src/strategies/local');
 //const routes = require("./src/routes");
+const { execSync } = require('child_process');
 
 const oneDayInMilliseconds = 86400000;
 
@@ -20,6 +21,11 @@ async function run()
   console.log('Running server...');
 
   try {
+    // Build client
+    console.log('Building client...');
+    execSync('cd client && npm run build-client', { stdio: 'inherit' });
+    console.log('Client built successfully.');
+
     // connect to remote database
     database.getClient().then(async (client) =>
     {
@@ -179,9 +185,7 @@ async function useRoutes() {
   // Client Root
   const clientRoot = path.resolve(process.cwd(), 'client', 'dist');
   console.log(`>> Client '${clientRoot}' exists?... ${fs.existsSync(clientRoot) ? 'YES' : 'NO'}`);
-  server.get(express.static(clientRoot), async(req, res) => {
-    console.log('Serving client...');
-  });
+  server.use(express.static(clientRoot));
 
   // Auth
   const auth = require('./src/api/auth');

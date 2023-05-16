@@ -23,8 +23,15 @@ async function run()
   // Build the client
   try {
     console.log('Building client...');
-    const output = execSync('cd client && ls', { encoding: 'utf-8' });
-    console.log('[Build Output]:', output);
+    const buildOutput = spawnSync('npm', ['run', 'build'], { cwd: 'client', stdio: 'inherit' });
+
+    if (buildOutput.status === 0) {
+      console.log(`[Build Output]: ${buildOutput.stdout}`);
+    } else {
+      console.error('Failed to build client:', buildOutput.error);
+      console.log(`[Build Output]: ${buildOutput.stderr}`);
+      process.exit(1);
+    }
   } catch (error) {
     console.error('[Build Error]:', error);
   }

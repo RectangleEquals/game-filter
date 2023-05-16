@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "dev": "node --require dotenv/config server.js",
-    "build": "npm install"
+    "build": "npm install && cd client && ../node_modules/.bin/npm install"
   },
   "pkg": {
     "scripts": "server.js",

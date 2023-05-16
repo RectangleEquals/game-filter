@@ -23,7 +23,7 @@ async function run()
   // Build the client
   try {
     console.log('Building client...');
-    const buildOutput = spawnSync('ls', { cwd: 'client', stdio: 'inherit' });
+    const buildOutput = spawnSync('ls', { cwd: process.cwd(), stdio: 'inherit' });
 
     if (buildOutput.status === 0) {
       console.log(`[Build Output]: ${buildOutput.stdout}`);

@@ -1,0 +1,70 @@
+.login-register-modal {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.login-register-modal .login-register-modal-header {
+  background: linear-gradient(to right, #5865F2 0%, #5865F2 33%, #0ebad1 100%);
+  color: #d3faff;
+  text-shadow: 2px 3px 2px #0e92c2, 0 0 1em #5865F2, 0 0 0.2em rgba(88, 101, 242, 0.588);
+  font-family: 'Bruno Ace SC', cursive;
+  font-size: 19px;
+  box-shadow: 2px 1px 6px rgba(0, 0, 0, 0.3);
+}
+
+.login-register-modal-body {
+  background: linear-gradient(to right, #0ebad125 0%, #0ebad152 33%, #0e93d125 100%);
+}
+
+.login-register-modal .nav-tabs {
+  border-bottom: none;
+}
+
+.login-register-modal .nav-link.active {
+  background-color: #5865F2;
+  color: #fff;
+}
+
+.login-register-modal .nav-link {
+  background-color: #002b5dc4;
+  color: #ffffffb5;
+  border: none;
+  border-radius: 6px 6px 0px 0px;
+  margin-right: 0px;
+}
+
+.login-register-modal .login-tab-content {
+  background: linear-gradient(to right, #5865F2 0%, #5865F2 33%, #0ebad1 100%);
+  color: #fff;
+  padding: 10px;
+}
+
+.login-register-modal .register-tab {
+  background-color: #002b5d;
+  color: #fff;
+}
+
+.login-register-modal .register-tab-content {
+  background: linear-gradient(to right, #5865F2 0%, #5865F2 33%, #0ebad1 100%);
+  color: #fff;
+  padding: 10px;
+}
+
+.login-register-modal .login-tab-content > hr,
+.login-register-modal .register-tab-content > hr {
+  display: none;
+}
+
+.login-register-modal .login-tab-content .form-group:last-of-type,
+.login-register-modal .register-tab-content .form-group:last-of-type {
+  margin-bottom: 0;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+.disabled .form-control,
+.disabled .btn {
+  pointer-events: none;
+  opacity: 0.5;
+}

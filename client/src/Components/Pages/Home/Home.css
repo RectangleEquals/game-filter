@@ -1,0 +1,167 @@
+/*
+// Homepage container
+*/
+.home {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/*
+// Navigation bars
+*/
+.navbar-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to right, #0e92c2 0%, #20f6faaa 10%, #0e9dd1 20%, #5865F2 70%, #0e92c2 90%);
+  background-color: transparent;
+  box-shadow: 1px 3px 12px rgba(0, 0, 0, 0.45);
+  border-radius: 0 0 6px 6px;
+  padding: 0;
+  margin: 0;
+  z-index: 1000 !important;
+  backdrop-filter: blur(10px);
+  fill-opacity: 0.98;
+  opacity: 0.98;
+}
+
+.navbar-footer {
+  position: fixed;
+  width: 100%;
+  background: linear-gradient(to right, #0e92c2 0%, #20f6faaa 10%, #0e9dd1 20%, #5865F2 70%, #0e92c2 90%);
+  background-color: transparent;
+  box-shadow: 1px 3px 12px rgba(0, 0, 0, 0.45);
+  border-radius: 6px 6px 0 0;
+  padding: 0;
+  margin: 0;
+  z-index: 999 !important;
+  backdrop-filter: blur(10px);
+  fill-opacity: 0.1;
+  opacity: 0.8;
+}
+
+/*
+// Leftmost navbar logo
+*/
+.website-logo {
+  height: 56px;
+  width: 56px;
+  margin-right: 10px;
+  padding: 0px 0px 0px 0px;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.3333), rgba(255, 255, 255, 0.6667));
+}
+
+/*
+// Main website title
+*/
+.website-name {
+  font-family: 'Bruno Ace SC', cursive;
+  font-size: 32px;
+  text-shadow: 1px 3px 4px #0e92c2, 0 0 1em #5865F2, 0 0 0.2em rgba(88, 101, 242, 0.588)
+}
+
+/*
+// Display text for login/logout
+*/
+.user-name,
+.discord-name {
+  font-family: 'Bruno Ace SC', cursive;
+  font-size: 18px;
+  margin-left: 5px;
+  color: whitesmoke;
+  text-shadow: 1px 1px 1px #89b2c0, 0 0 1em #a9afef, 0 0 0.2em rgba(167, 173, 245, 0.588)
+}
+.user-name:hover,
+.discord-name:hover {
+  font-family: 'Bruno Ace SC', cursive;
+  font-size: 19px;
+  margin-left: 5px;
+  color: white;
+  text-shadow: 2px 3px 8px #0e92c2, 0 0 1em #5865F2, 0 0 0.2em rgba(88, 101, 242, 0.588)
+}
+.user-name:hover:active,
+.discord-name:hover:active {
+  font-family: 'Bruno Ace SC', cursive;
+  font-size: 19px;
+  margin-left: 5px;
+  color: #a6f2fe;
+  text-shadow: 2px 3px 2px #0e92c2, 0 0 1em #5865F2, 0 0 0.2em rgba(88, 101, 242, 0.588)
+}
+
+/*
+// Rightmost navbar avatar logo (when logged in)
+*/
+.user-avatar {
+  height: 100%;
+  width: 50px;
+  margin-left: 10px;
+  padding: 0px 0px 0px 0px;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.6667), rgba(0, 0, 0, 0.3333));
+}
+
+/*
+// Rightmost navbar Discord logo (when logged out)
+*/
+.discord-logo {
+  height: 100%;
+  width: 50px;
+  margin-left: 10px;
+  padding: 8px 4px 8px 4px;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.6667), rgba(0, 0, 0, 0.3333));
+}
+
+/*
+// Fullscreen modal backdrop
+*/
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1040;
+  background-color: rgba(0, 0, 0, 0.5);
+  -webkit-filter: blur(5px);
+  filter: blur(5px);
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+body.modal-open .modal-backdrop {
+  display: block;
+}
+
+
+/*
+// Main logo and content
+*/
+.main-logo {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: -1 !important;
+  stroke: aqua;
+  pointer-events: none;
+  opacity: .2;
+}
+
+.main-content {
+  background-color: rgba(0, 0, 0, 0.535);
+  z-index: 0 !important;
+}
+
+.main-content-large-text {
+  font-family: 'Bruno Ace SC', cursive;
+  font-size: 48px;
+  color: white;
+  text-shadow: 1px 3px 4px #0e92c2, 0 0 1em #5865F2, 0 0 0.2em rgba(88, 101, 242, 0.588)
+}
+
+.main-content-small-text {
+  color: white;
+  font-size: 16px;
+  text-shadow: 0px 1px 10px #0e92c2, 0 0 1em #5865F2, 0 0 0.2em rgba(88, 101, 242, 0.588)
+}

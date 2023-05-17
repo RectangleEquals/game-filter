@@ -1,0 +1,26 @@
+.verify-account-modal {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.verify-account-modal .verify-account-modal-header {
+  background: linear-gradient(to right, #5865F2 0%, #5865F2 33%, #0ebad1 100%);
+  color: #d3faff;
+  text-shadow: 2px 3px 2px #0e92c2, 0 0 1em #5865F2, 0 0 0.2em rgba(88, 101, 242, 0.588);
+  font-family: 'Bruno Ace SC', cursive;
+  font-size: 19px;
+  box-shadow: 2px 1px 6px rgba(0, 0, 0, 0.3);
+}
+
+.verify-account-modal-body {
+  background: linear-gradient(to right, #0ebad125 0%, #0ebad152 33%, #0e93d125 100%);
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+.disabled .form-control,
+.disabled .btn {
+  pointer-events: none;
+  opacity: 0.5;
+}

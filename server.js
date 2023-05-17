@@ -7,18 +7,48 @@ const corsWhitelist = require("./src/corsWhitelist");
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const { getPassport, passport } = require('./src/passport');
+const fs = require('fs');
+const path = require('path');
 //const discordStrategy = require('./src/strategies/discord');
 const localStrategy = require('./src/strategies/local');
 //const routes = require("./src/routes");
+//const { spawnSync  } = require('child_process');
 
 const oneDayInMilliseconds = 86400000;
 
+// function execute(cwd, command, exitOnFail = false) {
+//   try {
+//     console.log(`Executing command '${command}' in path '${cwd}'...`);
+//     const output = spawnSync(command.split(' ')[0], command.split(' ').slice(1), { cwd, stdio: 'inherit' });
+
+//     if (output.status === 0) {
+//       console.log(`[Output ('${command}')]: ${output.stdout}`);
+//       return true;
+//     } else {
+//       console.error(`[Output ('${command}' error): ${output.error}`);
+//       console.log(`[Output ('${command}') stderror]: ${output.stderr}`);
+//       if(exitOnFail)
+//         process.exit(1);
+//     }
+//   } catch (error) {
+//     console.error(`[Command ('${command}' error): ${error.message}`);
+//   }
+
+//   return false;
+// }
+
 async function run()
 {
-  console.log('Running server...');
+  console.log('Starting server...');
 
+  // Build the client
+  // console.log('Building client...');
+  // const rootDir = process.cwd();
+  // const npxPath = path.join(__dirname, 'node_modules', '.bin', 'npx');
+  // execute(path.join(rootDir, 'client'), `${rootDir}/npx vite build`, true);
+
+  // Connect to remote database and init server
   try {
-    // connect to remote database
     database.getClient().then(async (client) =>
     {
       console.log('Testing connection...');
@@ -32,11 +62,6 @@ async function run()
       // init server
       console.log('Initializing server...');
       await init();
-
-      server.get("/", async(req, res) => {
-        console.error('Called GET on /');
-        res.status(200).json({ status: "200", message: "ok" });
-      });
 
       console.log('Returning server...');
       return server;
@@ -178,8 +203,16 @@ async function usePassport()
 // routes
 async function useRoutes() {
   console.log('> routes');
+
+  // Client Root
+  const clientRoot = path.resolve(process.cwd(), 'client', 'dist');
+  console.log(`>> Client '${clientRoot}' exists?... ${fs.existsSync(clientRoot) ? 'YES' : 'NO'}`);
+  server.use(express.static(clientRoot));
+
+  // Auth
   const auth = require('./src/api/auth');
   server.use(auth);
+
   // return await routes.use(server, err => {
   //   console.error(err.message);
   //   process.exit(-1);

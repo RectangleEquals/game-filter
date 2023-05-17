@@ -1,5 +1,4 @@
 const router = require("express").Router();
-const requestIp = require("request-ip");
 const addOrUpdateGame = require("../addGame");
 const Game = require("../models/Game");
 const path = require("path");
@@ -43,13 +42,6 @@ router.get("/:gameId", (req, res) =>
 router.post('/', async (req, res) => {
   console.log('Incoming game POST request...');
   try {
-    let ip = requestIp(req);
-    if(req.query.from !== ip) {
-      //res.status(400).json({ message: 'Bad auth request: IP address mismatch' });
-      console.warn(`> [WARNING]: IP address mismatch! Expected '${ip}' got '${req.query.from}'`);
-      //return;
-    }
-    
     const game = req.body;
     console.log(`> [game]:\n${JSON.stringify(game)}`);
     const updatedGame = await addOrUpdateGame(game);

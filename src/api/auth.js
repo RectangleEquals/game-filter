@@ -132,6 +132,7 @@ async function handleRegistration(req, res, next)
       const token = generateAccessToken(req.body.email, req.body.displayName);
       const newUser = new User({
         email: req.body.email,
+        displayName: req.body.displayName,
         password: req.body.password,
         verified: false,
         registrationToken: token,

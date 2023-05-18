@@ -316,7 +316,7 @@ router.post("/api/auth/login", upload.none(), pp.initializePassport, pp.sessionP
     // Handle any errors thrown from previous middleware(s)
     if (req.error) {
       // handle error
-      console.log(req.error.message);
+      console.log(req.error);
       return res.status(400).send(req.error.message);
     }
 

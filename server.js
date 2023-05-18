@@ -85,7 +85,7 @@ async function init() {
     //await useCookieDomainFix();
     await useBodyParser();
     await useCors();
-    //await useCookieParser();
+    await useCookieParser();
     await useSession();
     //await useRequestLogging();
     //await useRegenerateFix();
@@ -103,6 +103,12 @@ async function init() {
   console.log('=== SERVER IS READY ===');
 }
 
+// compression middleware
+async function useCompression() {
+  console.log('> compression');
+  server.use(compression());
+}
+
 /*
 async function useCookieDomainFix() {
   console.log(`> cookie domain fix (${config.PRODUCTION_DOMAIN_NAME})`);
@@ -113,16 +119,10 @@ async function useCookieDomainFix() {
 }
 */
 
-// compression middleware
-async function useCompression() {
-  console.log('> compression');
-  server.use(compression());
-}
-
 // bodyparser (NOTE: As of Express v4.16, this is now built in)
 async function useBodyParser() {
   console.log('> bodyparser');
-  server.use(express.urlencoded({extended : false}));
+  server.use(express.urlencoded({extended: true}));
   server.use(express.json());
 }
 

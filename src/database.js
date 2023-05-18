@@ -49,6 +49,10 @@ const getCollection = async(name) => {
   return collection;
 }
 
+const getSessionCollection = async() => {
+  return await getCollection(config.DB_SESSION_COLLECTION);
+}
+
 const connect = async(strictQuery = true) =>
 {
   try {
@@ -69,6 +73,7 @@ const connect = async(strictQuery = true) =>
     await mongoose.connect(dbUrl, dbOptions).then(async (newClient) => {
       console.log(`Connected to database: '${dbUrl}'`);
       client = newClient;
+      collections = await client.connection.db.collections();
     })
     .catch(err => {
       console.error(`[DATABASE (connect)]: Error connecting to database: '${dbUrl}': ${err.message}`);
@@ -79,20 +84,22 @@ const connect = async(strictQuery = true) =>
   }
 }
 
-async function validateSessionsForUser(userId, forceDelete = false)
+async function validateSessionsForUserId(userId, forceDelete = false)
 {
-  let userSession = await UserSession.findOne( { userId: userId });
-  const exists = Boolean(userSession && userSession.sessionId && userSession.userId);
+  let expired = true;
 
-  if(exists) {
-    console.log(`> Validating session ${userSession.sessionId} for user ${userSession.userId}...`);
-    try {
-      const sessionCollection = await getCollection(config.DB_SESSION_COLLECTION);
+  try {
+    let userSession = await UserSession.findOne( { userId: userId });
+    const exists = Boolean(userSession && userSession.sessionId && userSession.userId);
+
+    if(exists) {
+      console.log(`> Validating session ${userSession.sessionId} for user ${userSession.userId}...`);
+      const sessionCollection = await getSessionCollection();
       let sessionDoc = await sessionCollection.findOne({ _id: userSession.sessionId });
       
       let currentDate = new Date();
       let expirationDate = currentDate;
-      let expired = sessionDoc === undefined || sessionDoc === null;
+      expired = sessionDoc === undefined || sessionDoc === null;
       if(!expired) {
         expirationDate = new Date(sessionDoc.expires);
         expired = currentDate >= expirationDate;
@@ -109,10 +116,12 @@ async function validateSessionsForUser(userId, forceDelete = false)
         prefixString = forceDelete ? 'Forcefully removed' : 'Removed expired'
         console.log(`> ${prefixString} session ${userSession.sessionId}`);
       }
-    } catch (err) {
-      console.error(`[DATABASE (validateSessionsForUser)]: ${err.message}`);
     }
+  } catch (err) {
+    console.error(`[DATABASE (validateSessionsForUserId)]: ${err.message}`);
   }
+
+  return expired;
 }
 
-module.exports = { getUrl, getStore, getClient, getCollection, connect, validateSessionsForUser }
+module.exports = { getUrl, getStore, getClient, getCollection, getSessionCollection, connect, validateSessionsForUserId }

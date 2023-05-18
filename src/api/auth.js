@@ -15,6 +15,15 @@ const router = express.Router();
 const pp = getPassport(router);
 const bw = new badWords();
 
+
+// TODO: For routes which require auth checks (ie `isAuthorized`), we
+//  could implement some extra security by flagging accounts which make
+//  too many bad, invalid or unauthorized requests, possibly deleting
+//  the account's user sessions to force a logout, or in extreme cases,
+//  issuing a temporary/permanent ban for that particular account, making
+//  it impossible to log in, make requests or make a new account
+
+
   //////////////////
  // [VALIDATORS] //
 //////////////////
@@ -44,34 +53,25 @@ function validateEmail(email) {
  // [AUTHORIZERS] //
 ///////////////////
 
-// TODO: Perhaps remove the `upload.none` from this
-//  and add it as a middleware to the logout route?
 function isAuthorized(req, res, next) {
   console.log("Checking authorization...");
 
-  upload.none()(req, res, (err) => {
-    if (err) {
-      console.log("> Error parsing request body");
-      return res.status(400).json({ message: "Error parsing request body", error: err.message });
-    }
+  // Check if the request has a valid access token
+  if (!req.body || !req.body.accessToken) {
+    console.log("> Unauthorized");
+    return res.status(401).json({ message: "Unauthorized" });
+  }
 
-    // Check if the request has a valid access token
-    if (!req.body || !req.body.accessToken) {
-      console.log("> Unauthorized");
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    // Verify the access token
-    validateAccessToken(req.body.accessToken)
-      .then(userSession => {
-        req.userSession = userSession;
-        console.log("> Authorized");
-        next();
-      })
-      .catch(err => {
-        console.log(`> ${error.message}`);
-        return res.status(401).json({ message: "Unauthorized", error: err.message });
-      });
+  // Verify the access token
+  validateAccessToken(req.body.accessToken)
+  .then(userSession => {
+    req.userSession = userSession;
+    console.log("> Authorized");
+    next();
+  })
+  .catch(err => {
+    console.log(`> ${error.message}`);
+    return res.status(401).json({ message: "Unauthorized", error: err.message });
   });
 }
 
@@ -159,30 +159,23 @@ async function handleLogin(req, res, next)
   passport.authenticate('local', (err, user, info) =>
   {
     if (err) {
-      req.error = new Error("User not found in database");
+      req.error = err;
       return next();
     }
 
     if (!user) {
-      req.error = new Error(info.message);
-      return next();
-    }
-
-    // Validate the user in the database
-    const dbUser = User.findOne({ _id: user._id });
-    if (!dbUser) {
-      req.error = new Error("User not found in database");
+      req.error = info;
       return next();
     }
 
     // Check if the user is verified
-    if (!dbUser.verified) {
+    if (!user.verified) {
       req.error = new Error("User hasn't verified their account");
       return next();
     }
 
     // Everything is okay, set the user object in the request and proceed
-    req.user = dbUser;
+    req.user = user;
     next();
   })(req, res, next);
 }
@@ -313,48 +306,68 @@ router.get("/api/auth/verify/:token", async(req, res) => {
   }
 });
 
+// TODO:
+// - Instead of `req.userId`, we should be grabbing the `User._id` based upon req.body.email
+// - We should also refactor `database.validateSessionsForUserId` to instead take in a `User._id` (or just a `User`)
+
 router.post("/api/auth/login", upload.none(), pp.initializePassport, pp.sessionPassport, handleLogin, async (req, res) =>
 {
-  console.log(`Login requested from user: ${req.userId}`);
-  // res.setHeader('Access-Control-Allow-Origin', 'http://gamefilter.servegame.com');
-
-  // Handle any errors thrown from previous middleware(s)
-  if (req.error) {
-    // handle error
-    console.log(req.error.message);
-    return res.status(400).send(req.error.message);
-  }
-
   try {
+    // Handle any errors thrown from previous middleware(s)
+    if (req.error) {
+      // handle error
+      console.log(req.error.message);
+      return res.status(400).send(req.error.message);
+    }
+
+    console.log(`Login requested from user: ${req.user.email} (${req.user.id})`);
+
     // Validate the session
-    await database.validateSessionsForUser(req.userId, true);
+    await database.validateSessionsForUserId(req.user.id, true);
 
     // Update the database
-    let accessToken = generateAccessToken(req.userId, req.sessionID);
-    console.log(`Updating session for user ${req.userId}...`);
+    let accessToken = generateAccessToken(req.user.id, req.sessionID);
+    console.log(`Updating session for user ${req.user.email} (${req.user.id})...`);
     userSession = await UserSession.findOneAndUpdate(
       { accessToken: accessToken },
-      { $set: { accessToken: accessToken, sessionId: req.sessionID, userId: req.userId } },
+      { $set: { accessToken: accessToken, sessionId: req.sessionID, userId: req.user.id } },
       { upsert: true, new: true }
     );
     req.session.save();
     console.log(`UserSession document updated: ${userSession}`);
 
     // Send the response with an access token back to the client
-    res.status(200).json({ accessToken: accessToken });
+    res.status(200).json({ accessToken: accessToken, displayName: req.user.displayName });
   } catch (err) {
     console.error(err.message);
     res.status(400).send(err.message);
   }
 });
 
-router.post("/api/auth/logout", isAuthorized, async (req, res) =>
+router.post("/api/auth/logout", upload.none(), isAuthorized, async (req, res) =>
 {
   if(!req.userSession || !req.userSession.userId)
     return res.status(400).json({ message: 'Unknown User' });
     
-  await database.validateSessionsForUser(req.userSession.userId, true);
+  await database.validateSessionsForUserId(req.userSession.userId, true);
   res.status(200).send('ok');
+});
+
+router.post("/api/auth/user", upload.none(), isAuthorized, async (req, res) => {
+  try {
+    const user = await User.findById(req.userSession.userId);
+
+    if(!user)
+      return res.status(400).send('invalid');
+
+    const expired = await database.validateSessionsForUserId(user.id);
+    if(expired)
+      return res.status(200).json({ email: user.email, displayName: user.displayName, status: 'inactive' });
+
+    return res.status(200).json({ email: user.email, displayName: user.displayName, social: user.socialLogins, status: 'active' });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
 module.exports = router;

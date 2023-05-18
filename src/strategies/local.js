@@ -25,7 +25,6 @@ const use = () =>
   passport.use(strategy);
 
   // TODO: Figure out why these functions never get called
-  /*
   passport.serializeUser((user, done) => {
     console.log('(local) Serializing User...');
     done(null, user.id);
@@ -51,7 +50,6 @@ const use = () =>
         return done(err);
     }
   });
-  */
 }
 
 module.exports = { strategy, use };

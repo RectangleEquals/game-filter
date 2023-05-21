@@ -8,6 +8,7 @@ const { isAuthorized } = require("./auth");
 const User = require("../models/User");
 const UserSession = require("../models/UserSession");
 const upload = multer();
+const querystring = require('querystring');
 
 const router = express.Router();
 const pp = getPassport(router); // Grabs the passport singleton
@@ -92,13 +93,11 @@ router.get('/api/link/discord/callback', pp.initializePassport, pp.sessionPasspo
     }
 
     await user.save();
-    res.redirect(config.DISCORD_SUCCESS_REDIRECT)
+    return res.redirect(config.DISCORD_SUCCESS_REDIRECT)
   } catch (err) {
-    console.error(err);
-    req.error = err;
+    console.error(err.message);
+    return res.redirect(`${config.DISCORD_FAILURE_REDIRECT}?err=${Buffer.from(req.error.message).toString('base64')}`)
   }
-
-  res.redirect(`${config.DISCORD_FAILURE_REDIRECT}?err=${req.error.message}`)
 });
 
 module.exports = { router }

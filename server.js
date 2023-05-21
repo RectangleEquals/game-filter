@@ -9,43 +9,16 @@ const session = require('express-session');
 const { getPassport, passport } = require('./src/passport');
 const fs = require('fs');
 const path = require('path');
-//const discordStrategy = require('./src/strategies/discord');
+const discordStrategy = require('./src/strategies/discord');
 const localStrategy = require('./src/strategies/local');
 //const routes = require("./src/routes");
-//const { spawnSync  } = require('child_process');
 
 const oneDayInMilliseconds = 86400000;
 
-// function execute(cwd, command, exitOnFail = false) {
-//   try {
-//     console.log(`Executing command '${command}' in path '${cwd}'...`);
-//     const output = spawnSync(command.split(' ')[0], command.split(' ').slice(1), { cwd, stdio: 'inherit' });
-
-//     if (output.status === 0) {
-//       console.log(`[Output ('${command}')]: ${output.stdout}`);
-//       return true;
-//     } else {
-//       console.error(`[Output ('${command}' error): ${output.error}`);
-//       console.log(`[Output ('${command}') stderror]: ${output.stderr}`);
-//       if(exitOnFail)
-//         process.exit(1);
-//     }
-//   } catch (error) {
-//     console.error(`[Command ('${command}' error): ${error.message}`);
-//   }
-
-//   return false;
-// }
 
 async function run()
 {
   console.log('Starting server...');
-
-  // Build the client
-  // console.log('Building client...');
-  // const rootDir = process.cwd();
-  // const npxPath = path.join(__dirname, 'node_modules', '.bin', 'npx');
-  // execute(path.join(rootDir, 'client'), `${rootDir}/npx vite build`, true);
 
   // Connect to remote database and init server
   try {
@@ -196,7 +169,7 @@ async function usePassport()
   getPassport(server);
 
   localStrategy.use();
-  //discordStrategy.use();
+  discordStrategy.use();
   //steamStrategy.use();
 }
 
@@ -204,15 +177,15 @@ async function usePassport()
 async function useRoutes() {
   console.log('> routes');
 
-  // Client Root
-  const clientRoot = path.resolve(process.cwd(), 'client', 'dist');
-  console.log(`>> Client '${clientRoot}' exists?... ${fs.existsSync(clientRoot) ? 'YES' : 'NO'}`);
-  server.use(express.static(clientRoot));
-
   // Auth
+  console.log('>> auth');
   const auth = require('./src/api/auth');
-  server.use(auth);
+  server.use(auth.router);
 
+  // Social
+  console.log('>> social');
+  const social = require('./src/api/link');
+  server.use(social.router);
   // return await routes.use(server, err => {
   //   console.error(err.message);
   //   process.exit(-1);

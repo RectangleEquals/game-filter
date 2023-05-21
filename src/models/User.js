@@ -25,16 +25,9 @@ const userSchema = new mongoose.Schema({
       enum: ['discord', 'steam', 'microsoft', 'epic'],
       required: true
     },
-    providerId: {
-      type: String,
+    documentId: {
+      type: mongoose.Schema.Types.ObjectId,
       required: true
-    },
-    accessToken: {
-      type: String,
-      required: true
-    },
-    refreshToken: {
-      type: String
     }
   }],
   preferences: {

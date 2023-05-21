@@ -306,17 +306,12 @@ router.get("/api/auth/verify/:token", async(req, res) => {
   }
 });
 
-// TODO:
-// - Instead of `req.userId`, we should be grabbing the `User._id` based upon req.body.email
-// - We should also refactor `database.validateSessionsForUserId` to instead take in a `User._id` (or just a `User`)
-
 router.post("/api/auth/login", upload.none(), pp.initializePassport, pp.sessionPassport, handleLogin, async (req, res) =>
 {
   try {
     // Handle any errors thrown from previous middleware(s)
     if (req.error) {
-      // handle error
-      console.log(req.error);
+      console.error(req.error);
       return res.status(400).send(req.error.message);
     }
 
@@ -339,7 +334,7 @@ router.post("/api/auth/login", upload.none(), pp.initializePassport, pp.sessionP
     // Send the response with an access token back to the client
     res.status(200).json({ accessToken: accessToken, displayName: req.user.displayName });
   } catch (err) {
-    console.error(err.message);
+    console.error(err);
     res.status(400).send(err.message);
   }
 });
@@ -370,4 +365,4 @@ router.post("/api/auth/user", upload.none(), isAuthorized, async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = { router, isAuthorized };

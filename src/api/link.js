@@ -3,10 +3,10 @@ const express = require("express");
 const { getPassport, passport } = require('../passport');
 const mongoose = require('mongoose');
 const DiscordUser = require("../models/DiscordUser");
-const multer = require("multer");
 const { isAuthorized } = require("./auth");
 const User = require("../models/User");
 const UserSession = require("../models/UserSession");
+const multer = require("multer");
 const upload = multer();
 const querystring = require('querystring');
 
@@ -93,10 +93,10 @@ router.get('/api/link/discord/callback', pp.initializePassport, pp.sessionPasspo
     }
 
     await user.save();
-    return res.redirect(config.DISCORD_SUCCESS_REDIRECT)
+    return res.redirect(config.DISCORD_CLIENT_REDIRECT)
   } catch (err) {
     console.error(err.message);
-    return res.redirect(`${config.DISCORD_FAILURE_REDIRECT}?err=${Buffer.from(req.error.message).toString('base64')}`)
+    return res.redirect(`${config.DISCORD_CLIENT_REDIRECT}/${Buffer.from(req.error.message).toString('base64')}`)
   }
 });
 

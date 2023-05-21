@@ -60,7 +60,7 @@ async function init() {
     await useCors();
     await useCookieParser();
     await useSession();
-    //await useRequestLogging();
+    await useRequestLogging();
     //await useRegenerateFix();
     await usePassport();
     await useRoutes();
@@ -184,8 +184,11 @@ async function useRoutes() {
 
   // Social
   console.log('>> social');
-  const social = require('./src/api/link');
-  server.use(social.router);
+  const link = require('./src/api/link');
+  server.use(link.router);
+  const user = require('./src/api/user');
+  server.use(user.router);
+
   // return await routes.use(server, err => {
   //   console.error(err.message);
   //   process.exit(-1);

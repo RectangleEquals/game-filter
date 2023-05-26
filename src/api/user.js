@@ -1,25 +1,42 @@
-const config = require("../config/config");
 const express = require("express");
-const DiscordUser = require("../models/DiscordUser");
 const { isAuthorized } = require("./auth");
+const { getGuildIconUrl, getUserGuildRelationships } = require("../strategies/discord");
+const DiscordUser = require("../models/DiscordUser");
 const User = require("../models/User");
 const multer = require("multer");
 const upload = multer();
 
 const router = express.Router();
 
-const getDiscordUserData = async(discordUser) => {
-  if(!discordUser)
+const getDiscordUserData = async (discordUser) => {
+  if (!discordUser) {
     return null;
+  }
 
+  // Filter out potentially sensitive or useless information from the user object
   const { guilds, __v, _id, accessToken, refreshToken, userId, ...userData } = discordUser.toObject();
   const processedGuilds = guilds.map(guild => {
     const { _id, ...guildData } = guild;
     return guildData;
   });
 
-  return { ...userData, guilds: processedGuilds };
-}
+  // Get relationships between this user and other users with the same guild(s)
+  const userGuildIds = processedGuilds.map(guild => guild.id);
+  const userGuildRelationships = await getUserGuildRelationships(userGuildIds);
+
+  // Build the relationships object excluding the current user
+  const relationships = userGuildRelationships
+    .filter(user => user.discordId !== discordUser.discordId)
+    .map(user => {
+      const sharedGuilds = user.guilds.filter(guild => userGuildIds.includes(guild.id));
+      return {
+        discordId: user.discordId,
+        guilds: sharedGuilds.map(guild => {return {id: guild.id, name: guild.name, icon: getGuildIconUrl(guild.id, guild.icon)}}),
+      };
+    });
+
+  return { ...userData, guilds: processedGuilds, relationships };
+};
 
 const handleUserRequest = async(req, res, next) =>
 {

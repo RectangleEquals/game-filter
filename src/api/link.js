@@ -1,14 +1,11 @@
 const config = require("../config/config");
 const express = require("express");
 const { getPassport, passport } = require('../passport');
-const mongoose = require('mongoose');
-const DiscordUser = require("../models/DiscordUser");
 const { isAuthorized } = require("./auth");
 const User = require("../models/User");
 const UserSession = require("../models/UserSession");
 const multer = require("multer");
 const upload = multer();
-const querystring = require('querystring');
 
 const router = express.Router();
 const pp = getPassport(router); // Grabs the passport singleton

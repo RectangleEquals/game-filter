@@ -70,7 +70,7 @@ function isAuthorized(req, res, next) {
     next();
   })
   .catch(err => {
-    console.log(`> ${error.message}`);
+    console.log(`> ${err.message}`);
     return res.status(401).json({ message: "Unauthorized", error: err.message });
   });
 }

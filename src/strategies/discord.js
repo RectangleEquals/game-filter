@@ -1,18 +1,13 @@
 const config = require("../config/config");
-const { getPassport, passport } = require('../passport');
+const { passport } = require('../passport');
 const DiscordUser = require("../models/DiscordUser");
 const User = require("../models/User");
 const UserSession = require("../models/UserSession");
 const { Strategy } = require('passport-discord');
 const refresh = require('passport-oauth2-refresh');
 
-// TODO:
-// - Gut this down to follow more in suit with `auth.js` and `local.js`
-// - Follow https://www.passportjs.org/packages/passport-discord/ for a better understanding
-// - Have the client *request* the auth URL from here, adding the callback to a new route in `App.js`
-
 const callbackUrl = config.DISCORD_REDIRECT_URL;
-const scopes = config.DISCORD_SCOPES.split(' ');
+const scopes = config.DISCORD_SCOPES.split(' '); // ['identify', 'guilds', 'email']
 
 const callback = async(req, accessToken, refreshToken, profile, done) =>
 {
@@ -32,7 +27,7 @@ const callback = async(req, accessToken, refreshToken, profile, done) =>
         discordId: profile.id,
         email: profile.email,
         userName: profile.username,
-        avatarUrl: profile.avatar,
+        avatarUrl: getAvatarUrl(profile.id, profile.avatar),
         guilds: profile.guilds,
         accessToken: accessToken,
         refreshToken: refreshToken,
@@ -68,11 +63,13 @@ const use = () =>
 {
   // Serialize the user into a session
   passport.serializeUser((user, done) => {
+    console.log('> (discord) Serializing User...');
     done(null, user.id);
   });
 
   // Deserialize the user from the session
   passport.deserializeUser(async (id, done) => {
+    console.log('> (discord) Deserializing User...');
     //const user = DiscordUser.find(u => u.id === id);
     const user = await DiscordUser.findOne({ discordId: id });
     done(null, user);
@@ -82,4 +79,38 @@ const use = () =>
   refresh.use( strategy );
 }
 
-module.exports = { strategy, use };
+const getUserGuildRelationships = async (guildIds) => {
+  try {
+    console.log(`> Retrieving guild relationships...`);
+
+    // Retrieve all users who have linked their Discord accounts
+    const discordUsers = await DiscordUser.find({
+      guilds: { $elemMatch: { id: { $in: guildIds } } },
+    });
+
+    // Build the final list of user information
+    const userList = discordUsers.map((user) => {
+      return {
+        discordId: user.discordId,
+        userName: user.userName,
+        avatarUrl: user.avatarUrl,
+        guilds: user.guilds,
+      };
+    });
+
+    return userList;
+  } catch (err) {
+    console.error(`> Failed to retrieve guild relationships: ${err}`);
+    return null;
+  }
+};
+
+const getAvatarUrl = (discordId, avatarId, size = 32, format = 'webp') => {
+  return `https://cdn.discordapp.com/avatars/${discordId}/${avatarId}.${format}?size=${size}`;
+}
+
+const getGuildIconUrl = (guildId, iconId, size = 32, format = 'webp') => {
+  return `https://cdn.discordapp.com/icons/${guildId}/${iconId}.${format}?size=${size}`;
+}
+
+module.exports = { strategy, use, getUserGuildRelationships, getAvatarUrl, getGuildIconUrl };

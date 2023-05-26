@@ -37,7 +37,7 @@ const discordUserSchema = new mongoose.Schema({
     type: String
   },
   avatarUrl: {
-    type: mongoose.Schema.Types.String
+    type: String
   },
   guilds: {
     type: [guildSchema]

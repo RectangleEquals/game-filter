@@ -30,7 +30,7 @@ const getDiscordUserData = async (discordUser) => {
     .map(user => {
       const sharedGuilds = user.guilds.filter(guild => userGuildIds.includes(guild.id));
       return {
-        discordId: user.discordId,
+        user: { id: user.discordId, name: user.userName, avatar: user.avatarUrl },
         guilds: sharedGuilds.map(guild => {return {id: guild.id, name: guild.name, icon: getGuildIconUrl(guild.id, guild.icon)}}),
       };
     });
@@ -86,4 +86,4 @@ router.post('/api/user', upload.none(), isAuthorized, handleUserRequest, async(r
   }
 });
 
-module.exports = { router }
+module.exports = { router };

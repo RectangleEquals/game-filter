@@ -3,7 +3,7 @@ const express = require("express");
 const { getPassport, passport } = require('../passport');
 const { isAuthorized } = require("./auth");
 const User = require("../models/User");
-const UserSession = require("../models/UserSession");
+const UserSession = require("../models/UserSession").model;
 const multer = require("multer");
 const upload = multer();
 

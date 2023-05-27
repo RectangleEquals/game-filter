@@ -1,7 +1,7 @@
 const config = require("./config/config");
 const MongoStore = require("connect-mongo");
 const mongoose = require("mongoose");
-const UserSession = require("./models/UserSession");
+const UserSession = require("./models/UserSession").model;
 
 let client = undefined;
 let store = undefined;

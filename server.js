@@ -177,6 +177,11 @@ async function usePassport()
 async function useRoutes() {
   console.log('> routes');
 
+  // Debug
+  console.log('>> debug');
+  const debug = require('./src/api/debug');
+  server.use(debug.router);
+
   // Auth
   console.log('>> auth');
   const auth = require('./src/api/auth');

@@ -6,4 +6,4 @@ const UserSessionSchema = new mongoose.Schema({
   userId: { type: String, required: true, unique: true }
 });
 
-module.exports = mongoose.model('usersessions', UserSessionSchema);
+module.exports = {schema: UserSessionSchema, model: mongoose.model('usersessions', UserSessionSchema)};

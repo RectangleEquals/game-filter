@@ -2,7 +2,7 @@ const config = require("../config/config");
 const { passport } = require('../passport');
 const DiscordUser = require("../models/DiscordUser");
 const User = require("../models/User");
-const UserSession = require("../models/UserSession");
+const UserSession = require("../models/UserSession").model;
 const { Strategy } = require('passport-discord');
 const refresh = require('passport-oauth2-refresh');
 

@@ -47,17 +47,25 @@ const handleUserRequest = async(req, res, next) =>
   }
   
   try {
-    // Check for any social links
+    // Build user data
     const user = await User.findById(req.userSession.userId);
-    let userData = [];
+    let userData = {};
+    userData.email = user.email;
+    userData.displayName = user.displayName;
+    userData.verified = user.verified;
+    userData.roles = user.roles;
+    userData.preferences = user.preferences;
+    userData.socials = [];
 
+    // Build social data
     for (const account of user.socialLogins) {
       switch (account.provider) {
         case "discord":
           const discordUser = await DiscordUser.findById(account.documentId);
           const data = await getDiscordUserData(discordUser);
-          if(data)
-            userData.push({ provider: account.provider, data });
+          if(data) {
+            userData.socials.push({discord: data});
+          }
           break;
         default:
           // No social account links

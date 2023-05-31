@@ -1,5 +1,5 @@
 const express = require("express");
-const { isAuthorized } = require("./auth");
+const { isAuthorized, hasRole, validateRole } = require("./auth");
 const Log = require("../models/Log");
 const database = require("../database");
 const User = require("../models/User");
@@ -7,8 +7,21 @@ const multer = require("multer");
 const upload = multer();
 const router = express.Router();
 
-router.post("/api/debug", upload.none(), isAuthorized, async (req, res) =>
+router.post("/api/debug", upload.none(), isAuthorized, hasRole({any: 'Member'}), async (req, res) =>
 {
+  if(req.error) {
+    let status;
+    switch(req.error.message) {
+      case "bad_role":
+        status = 403;
+        break;
+      default:
+        status = 500;
+    }
+    console.error(`> ${req.error.message}`);
+    return res.status(status).send(req.error.message);
+  }
+
   if(!req.userSession || !req.userSession.userId)
     return res.status(400).send('bad_session');
     
@@ -43,6 +56,23 @@ router.post("/api/debug", upload.none(), isAuthorized, async (req, res) =>
   else if(req.body.method === "PULL")
   {
     try {
+      // Restrict this functionality to Designers, Developers and Admins
+      const { isValid, error } = validateRole({any: ['Designer', 'Developer', 'Admin']}, req.user);
+      if(!isValid) {
+        if(error) {
+          let status;
+          switch(error.message) {
+            case "bad_role":
+              status = 403;
+              break;
+            default:
+              status = 500;
+          }
+          console.error(`> ${error.message}`);
+          return res.status(status).send(error.message);
+        }
+      }
+      
       let userEmails = req.body.email || [];
       userEmails = Array.isArray(userEmails) ? userEmails.filter(email => email.trim() !== "") : [userEmails];
 

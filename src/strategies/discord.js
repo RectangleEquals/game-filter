@@ -18,7 +18,7 @@ const callback = async(req, accessToken, refreshToken, profile, done) =>
       throw new error('invalid_state');
 
     let userSession = await UserSession.findOne({ accessToken: req.query.state });
-    let user = await User.findOne({ id: userSession.userId });
+    let user = await User.findById(userSession.userId);
 
     let discordUser = await DiscordUser.findOne({ discordId: profile.id });
     if (!discordUser) {

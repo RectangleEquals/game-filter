@@ -10,6 +10,7 @@ const upload = multer();
 const badWords = require('bad-words');
 const Mailer = require("../lib/mailer");
 const path = require('path');
+const { request } = require("http");
 
 const router = express.Router();
 const pp = getPassport(router);
@@ -49,31 +50,98 @@ function validateEmail(email) {
   return emailRegex.test(email);
 }
 
+function validateRole(options, user) {
+  try {
+    let isValid = false;
+    let error = null;
+
+    if (!options || !(options.any || options.all)) {
+      error = new Error("missing_options");
+      return { isValid, error };
+    }
+
+    if (!user) {
+      error = new Error("missing_user");
+      return { isValid, error };
+    }
+
+    if (!user.roles || !Array.isArray(user.roles)) {
+      error = new Error("missing_roles");
+      return { isValid, error };
+    }
+
+    if(user.roles.includes('Owner'))
+      return { isValid: true, error: null };
+
+    if (options.all) {
+      isValid = options.all.every(role => user.roles.includes(role));
+    } else if (options.any) {
+      if (Array.isArray(options.any))
+        isValid = options.any.some(role => user.roles.includes(role));
+      else
+        isValid = user.roles.includes(options.any);
+    }
+
+    if (isValid) {
+      isValid = true;
+    } else {
+      error = new Error("bad_role");
+    }
+
+    return { isValid, error };
+  } catch (err) {
+    return { isValid: false, error: err };
+  }
+}
+
   ///////////////////
  // [AUTHORIZERS] //
 ///////////////////
 
+// Middleware function to check if the user has a valid token/session
 function isAuthorized(req, res, next) {
   console.log("Checking authorization...");
 
   // Check if the request has a valid access token
   if (!req.body || !req.body.accessToken) {
-    console.log("> Unauthorized");
+    console.error("> Unauthorized");
     return res.status(401).json({ message: "Unauthorized" });
   }
 
   // Verify the access token
   validateAccessToken(req.body.accessToken)
-  .then(userSession => {
+  .then(async userSession => {
     req.userSession = userSession;
+    req.user = await User.findById(userSession.userId);
     console.log("> Authorized");
     next();
   })
   .catch(err => {
-    console.log(`> ${err.message}`);
+    console.error(`> ${err.message}`);
     return res.status(401).json({ message: "Unauthorized", error: err.message });
   });
 }
+
+// Middleware function to check if the user has the specified role(s)
+function hasRole(options)
+{
+  try {
+    return (req, res, next) => {
+      const { isValid, error } = validateRole(options, req.user);
+
+      if (isValid) {
+        console.log("> Authorized Role");
+        next();
+      } else {
+        req.error = error || new Error("bad_role");
+        next();
+      }
+    };
+  } catch (err) {
+    req.error = err;
+    next();
+  }
+};
 
   ////////////////
  // [HANDLERS] //
@@ -136,6 +204,7 @@ async function handleRegistration(req, res, next)
         password: req.body.password,
         verified: false,
         registrationToken: token,
+        roles: ['Member'],
         socialLogins: []
       });
 
@@ -365,4 +434,4 @@ router.post("/api/auth/user", upload.none(), isAuthorized, async (req, res) => {
   }
 });
 
-module.exports = { router, isAuthorized };
+module.exports = { router, isAuthorized, validateRole, hasRole };

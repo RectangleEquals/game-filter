@@ -19,6 +19,10 @@ const userSchema = new mongoose.Schema({
   registrationToken: {
     type: String
   },
+  roles: [{
+    type: String,
+    enum: ['Member', 'Supporter', 'Designer', 'Developer', 'Admin', 'Owner']
+  }],
   socialLogins: [{
     provider: {
       type: String,

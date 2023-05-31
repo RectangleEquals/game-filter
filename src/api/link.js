@@ -1,4 +1,5 @@
 const config = require("../config/config");
+const log = require("../lib/log");
 const express = require("express");
 const { getPassport, passport } = require('../passport');
 const { isAuthorized } = require("./auth");
@@ -17,7 +18,7 @@ const pp = getPassport(router); // Grabs the passport singleton
 
 const handleDiscordLogin = (req, res, next) =>
 {
-  console.log('Incoming Discord account link request...');
+  log.info('Incoming Discord account link request...');
 
   // Call passport authenticate method with discord strategy and callback function
   passport.authenticate('discord', (err, user, info) =>
@@ -56,13 +57,13 @@ router.post('/api/link/discord', upload.none(), isAuthorized, async(req, res) =>
   try {
     // Handle any errors thrown from previous middleware(s)
     if (!(req.userSession && req.userSession.accessToken)) {
-      console.error("[ERROR (/api/link/discord)]: invalid token");
+      log.error("[ERROR (/api/link/discord)]: invalid token");
       return res.status(400).send("invalid_token");
     }
     
     res.status(200).send(`${config.DISCORD_AUTHURL}&state=${req.userSession.accessToken}`);
   } catch (err) {
-    console.error(err);
+    log.error(err);
     return res.status(500).send(err.message);
   }
 });
@@ -92,7 +93,7 @@ router.get('/api/link/discord/callback', pp.initializePassport, pp.sessionPasspo
     await user.save();
     return res.redirect(config.DISCORD_CLIENT_REDIRECT)
   } catch (err) {
-    console.error(err.message);
+    log.error(err.message);
     return res.redirect(`${config.DISCORD_CLIENT_REDIRECT}/${Buffer.from(req.error.message).toString('base64')}`)
   }
 });

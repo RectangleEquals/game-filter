@@ -1,4 +1,5 @@
 const config = require("../config/config");
+const log = require("../lib/log");
 const express = require("express");
 const { getPassport, passport } = require('../passport');
 const { generateAccessToken } = require("../lib/security");
@@ -100,11 +101,11 @@ function validateRole(options, user) {
 
 // Middleware function to check if the user has a valid token/session
 function isAuthorized(req, res, next) {
-  console.log("Checking authorization...");
+  log.info("Checking authorization...");
 
   // Check if the request has a valid access token
   if (!req.body || !req.body.accessToken) {
-    console.error("> Unauthorized");
+    log.error("> Unauthorized");
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -113,11 +114,11 @@ function isAuthorized(req, res, next) {
   .then(async userSession => {
     req.userSession = userSession;
     req.user = await User.findById(userSession.userId);
-    console.log("> Authorized");
+    log.info("> Authorized");
     next();
   })
   .catch(err => {
-    console.error(`> ${err.message}`);
+    log.error(`> ${err.message}`);
     return res.status(401).json({ message: "Unauthorized", error: err.message });
   });
 }
@@ -130,7 +131,7 @@ function hasRole(options)
       const { isValid, error } = validateRole(options, req.user);
 
       if (isValid) {
-        console.log("> Authorized Role");
+        log.info("> Authorized Role");
         next();
       } else {
         req.error = error || new Error("bad_role");
@@ -149,7 +150,7 @@ function hasRole(options)
 
 async function handleRegistration(req, res, next)
 {
-  console.log(`Incoming registration request from ${req.body.email}...`);
+  log.info(`Incoming registration request from ${req.body.email}...`);
 
   try {
     req.registration = {};
@@ -160,7 +161,7 @@ async function handleRegistration(req, res, next)
     {
       // User already exists, check if they're verified
       if(req.registration.user.verified) {
-        console.log(`> Registration request from ${req.body.email} already verified...`);
+        log.info(`> Registration request from ${req.body.email} already verified...`);
         req.registration.res = { status: 418, message: 'verified' };
         
         return next();
@@ -168,7 +169,7 @@ async function handleRegistration(req, res, next)
 
       // User exists but isn't verified, check if they're pending account verification
       if(req.registration.user.registrationToken) {
-        console.log(`> Registration request from ${req.body.email} already pending...`);
+        log.info(`> Registration request from ${req.body.email} already pending...`);
         req.registration.res = { status: 418, message: 'pending' };
 
         return next();
@@ -222,7 +223,7 @@ async function handleRegistration(req, res, next)
 
 async function handleLogin(req, res, next)
 {
-  console.log('Incoming login request...');
+  log.info('Incoming login request...');
 
   // Call passport authenticate method with local strategy and callback function
   passport.authenticate('local', (err, user, info) =>
@@ -278,18 +279,18 @@ router.post("/api/auth/register", upload.none(), handleRegistration, async (req,
           ).then(mailer => {
             mailer.send().then(result => {
               if(result !== undefined && result !== null && result !== false) {
-                console.error(`> Verification pending for ${req.body.email} with token ${token}...`);
+                log.error(`> Verification pending for ${req.body.email} with token ${token}...`);
                 res.status(200).json({token: token});
               } else {
-                console.error(`[ERROR]: ${result.error.message}`);
+                log.error(`[ERROR]: ${result.error.message}`);
                 res.status(400).send(result.error.message);
               }
             }).catch(err => {
-              console.error(`[ERROR]: ${err.message}`);
+              log.error(`[ERROR]: ${err.message}`);
               res.status(400).send(err.message);
             });
           }).catch(err => {
-            console.error(`[ERROR]: ${err.message}`);
+            log.error(`[ERROR]: ${err.message}`);
             res.status(400).send(err.message);
           });
           return;
@@ -302,30 +303,30 @@ router.post("/api/auth/register", upload.none(), handleRegistration, async (req,
           res.status(200).send('pending');
           return;
         } else {
-          console.warn('[WARNING]: Unhandled 200 status in registration route...');
+          log.warning('[WARNING]: Unhandled 200 status in registration route...');
           res.status(500).send('unhandled');
           return;
         }
       }
       case(400):
       {
-        console.error(`[ERROR]: ${req.registration.res.message}`);
+        log.error(`[ERROR]: ${req.registration.res.message}`);
         res.status(400).send(req.registration.res.message);
         return;
       }
       case(418):
       {
-        console.warn(`[WARNING]: Failed registration! Reason: ${req.registration.res.message}`);
+        log.warning(`[WARNING]: Failed registration! Reason: ${req.registration.res.message}`);
         res.status(418).send(req.registration.res.message);
         return;
       }
       default:
-        console.error(`[ERROR]: Unhandled status`);
+        log.error(`[ERROR]: Unhandled status`);
         res.status(500).send('unhandled');
         return;
     }
   } catch (err) {
-    console.error(`[ERROR]: ${err.message}`);
+    log.error(`[ERROR]: ${err.message}`);
     res.status(400).send(err.message);
   }
 });
@@ -336,7 +337,7 @@ router.get("/api/auth/verify/:token", async(req, res) => {
 
     // Handle situations where a token is somehow null, empty, undefined, etc
     if(!token || token.length < 1) {
-      console.warn(`Bad verification request: ${JSON.stringify(req.query)}`);
+      log.warning(`Bad verification request: ${JSON.stringify(req.query)}`);
       res.status(400).send('Bad verification request');
       return;
     }
@@ -344,11 +345,11 @@ router.get("/api/auth/verify/:token", async(req, res) => {
     // Handle situations where a user with the requested token doesn't exist
     const user = await User.findOne({ registrationToken: token });
     if(!user) {
-      console.warn(`[WARNING]: Verification requested for invalid user with token: ${token}`);
+      log.warning(`[WARNING]: Verification requested for invalid user with token: ${token}`);
       res.status(400).send('invalid');
       return;
     }
-    console.log(`Verification requested for user ${user.email} with token: ${token}`);
+    log.info(`Verification requested for user ${user.email} with token: ${token}`);
 
     // Make sure the user hasn't already been verified
     if(user.verified) {
@@ -370,7 +371,7 @@ router.get("/api/auth/verify/:token", async(req, res) => {
 
     res.status(200).send('verified');
   } catch (err) {
-    console.error(`[ERROR]: ${err.message}`);
+    log.error(`[ERROR]: ${err.message}`);
     res.status(400).send(err.message);    
   }
 });
@@ -380,30 +381,30 @@ router.post("/api/auth/login", upload.none(), pp.initializePassport, pp.sessionP
   try {
     // Handle any errors thrown from previous middleware(s)
     if (req.error) {
-      console.error(req.error);
+      log.error(req.error);
       return res.status(400).send(req.error.message);
     }
 
-    console.log(`Login requested from user: ${req.user.email} (${req.user.id})`);
+    log.info(`Login requested from user: ${req.user.email} (${req.user.id})`);
 
     // Validate the session
     await database.validateSessionsForUserId(req.user.id, true);
 
     // Update the database
     let accessToken = generateAccessToken(req.user.id, req.sessionID);
-    console.log(`Updating session for user ${req.user.email} (${req.user.id})...`);
+    log.info(`Updating session for user ${req.user.email} (${req.user.id})...`);
     userSession = await UserSession.findOneAndUpdate(
       { accessToken: accessToken },
       { $set: { accessToken: accessToken, sessionId: req.sessionID, userId: req.user.id } },
       { upsert: true, new: true }
     );
     req.session.save();
-    console.log(`UserSession document updated: ${userSession}`);
+    log.info(`UserSession document updated: ${userSession}`);
 
     // Send the response with an access token back to the client
     res.status(200).json({ accessToken: accessToken, displayName: req.user.displayName });
   } catch (err) {
-    console.error(err);
+    log.error(err);
     res.status(400).send(err.message);
   }
 });

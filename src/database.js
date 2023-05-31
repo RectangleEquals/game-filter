@@ -1,4 +1,5 @@
 const config = require("./config/config");
+const log = require("./lib/log");
 const MongoStore = require("connect-mongo");
 const mongoose = require("mongoose");
 const UserSession = require("./models/UserSession").model;
@@ -68,19 +69,19 @@ const connect = async(strictQuery = true) =>
 
     // Connect to MongoDB
     const dbUrl = getUrl();
-    console.log(`Connecting to database: '${dbUrl}'`);
+    log.info(`Connecting to database: '${dbUrl}'`);
 
     await mongoose.connect(dbUrl, dbOptions).then(async (newClient) => {
-      console.log(`Connected to database: '${dbUrl}'`);
+      log.info(`Connected to database: '${dbUrl}'`);
       client = newClient;
       collections = await client.connection.db.collections();
     })
     .catch(err => {
-      console.error(`[DATABASE (connect)]: Error connecting to database: '${dbUrl}': ${err.message}`);
+      log.error(`[DATABASE (connect)]: Error connecting to database: '${dbUrl}': ${err.message}`);
       client = undefined;
     });
   } catch (error) {
-    console.error(`[DATABASE (connect)]: ${error.message}`);
+    log.error(`[DATABASE (connect)]: ${error.message}`);
   }
 }
 
@@ -93,7 +94,7 @@ async function validateSessionsForUserId(userId, forceDelete = false)
     const exists = Boolean(userSession && userSession.sessionId && userSession.userId);
 
     if(exists) {
-      console.log(`> Validating session ${userSession.sessionId} for user ${userSession.userId}...`);
+      log.info(`> Validating session ${userSession.sessionId} for user ${userSession.userId}...`);
       const sessionCollection = await getSessionCollection();
       let sessionDoc = await sessionCollection.findOne({ _id: userSession.sessionId });
       
@@ -104,21 +105,21 @@ async function validateSessionsForUserId(userId, forceDelete = false)
         expirationDate = new Date(sessionDoc.expires);
         expired = currentDate >= expirationDate;
       } else {
-        console.log(`> Session ${userSession.sessionId} has expired`);
+        log.info(`> Session ${userSession.sessionId} has expired`);
       }
 
       if(forceDelete || expired) {
         let prefixString = forceDelete ? 'Forcefully removing' : 'Removing expired'
         // Existing session has expired, so we need to destroy it
-        console.log(`> ${prefixString} session ${userSession.sessionId} for user ${userSession.userId}...`);
+        log.info(`> ${prefixString} session ${userSession.sessionId} for user ${userSession.userId}...`);
         await sessionCollection.deleteOne({ _id: userSession.sessionId });
         await userSession.deleteOne({ sessionId: userSession.sessionId })
         prefixString = forceDelete ? 'Forcefully removed' : 'Removed expired'
-        console.log(`> ${prefixString} session ${userSession.sessionId}`);
+        log.info(`> ${prefixString} session ${userSession.sessionId}`);
       }
     }
   } catch (err) {
-    console.error(`[DATABASE (validateSessionsForUserId)]: ${err.message}`);
+    log.error(`[DATABASE (validateSessionsForUserId)]: ${err.message}`);
   }
 
   return expired;

@@ -1,4 +1,5 @@
 const config = require("../config/config");
+const log = require("../lib/log");
 const { passport } = require('../passport');
 const DiscordUser = require("../models/DiscordUser");
 const User = require("../models/User");
@@ -13,7 +14,7 @@ const callback = async(req, accessToken, refreshToken, profile, done) =>
 {
   try
   {
-    console.log(`Updating discord user ${profile.username} (${profile.id})...`);
+    log.info(`Updating discord user ${profile.username} (${profile.id})...`);
     if(!(req.query && req.query.state))
       throw new error('invalid_state');
 
@@ -43,10 +44,10 @@ const callback = async(req, accessToken, refreshToken, profile, done) =>
       await discordUser.save();
     }
 
-    console.log(`> Finished updating discord user ${profile.username} (${profile.id})`);
+    log.info(`> Finished updating discord user ${profile.username} (${profile.id})`);
     return done(null, discordUser);
   } catch (err) {
-    console.error(`> Failed to update discord user ${profile.username} (${profile.id}): ${err}`);
+    log.error(`> Failed to update discord user ${profile.username} (${profile.id}): ${err}`);
     return done(err, null);
   }
 }
@@ -63,13 +64,13 @@ const use = () =>
 {
   // Serialize the user into a session
   passport.serializeUser((user, done) => {
-    console.log('> (discord) Serializing User...');
+    log.info('> (discord) Serializing User...');
     done(null, user.id);
   });
 
   // Deserialize the user from the session
   passport.deserializeUser(async (id, done) => {
-    console.log('> (discord) Deserializing User...');
+    log.info('> (discord) Deserializing User...');
     //const user = DiscordUser.find(u => u.id === id);
     const user = await DiscordUser.findOne({ discordId: id });
     done(null, user);
@@ -81,7 +82,7 @@ const use = () =>
 
 const getUserGuildRelationships = async (guildIds) => {
   try {
-    console.log(`> Retrieving guild relationships...`);
+    log.info(`> Retrieving guild relationships...`);
 
     // Retrieve all users who have linked their Discord accounts
     const discordUsers = await DiscordUser.find({
@@ -100,7 +101,7 @@ const getUserGuildRelationships = async (guildIds) => {
 
     return userList;
   } catch (err) {
-    console.error(`> Failed to retrieve guild relationships: ${err}`);
+    log.error(`> Failed to retrieve guild relationships: ${err}`);
     return null;
   }
 };

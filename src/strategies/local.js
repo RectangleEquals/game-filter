@@ -1,3 +1,4 @@
+const log = require("../lib/log");
 const { passport } = require("../passport");
 const LocalStrategy = require("passport-local").Strategy;
 const User = require("../models/User");
@@ -22,26 +23,26 @@ const strategy = new LocalStrategy({
 const use = () =>
 {
   passport.serializeUser((user, done) => {
-    console.log('> (local) Serializing User...');
+    log.info('> (local) Serializing User...');
     done(null, user.id);
   });
   
   passport.deserializeUser(async (id, done) =>
   {
-    console.log('> (local) Deserializing User...');
+    log.info('> (local) Deserializing User...');
     
     try {
       const user = await User.findById(id);
       if(!user)
         throw new Error('User not found');
         
-        console.log(`> [id]: ${user.id}`);
-        console.log(`> [session]: ${user.sessionID}`);
+        log.info(`> [id]: ${user.id}`);
+        log.info(`> [session]: ${user.sessionID}`);
         
       if(done)
         return done(null, user);
     } catch (err) {
-      console.error(err);
+      log.error(err);
       if(done)
       return done(err);
     }

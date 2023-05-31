@@ -1,3 +1,4 @@
+const log = require("../lib/log");
 const express = require("express");
 const { isAuthorized, hasRole, validateRole } = require("./auth");
 const Log = require("../models/Log");
@@ -18,7 +19,7 @@ router.post("/api/debug", upload.none(), isAuthorized, hasRole({any: 'Member'}),
       default:
         status = 500;
     }
-    console.error(`> ${req.error.message}`);
+    log.error(`> ${req.error.message}`);
     return res.status(status).send(req.error.message);
   }
 
@@ -68,7 +69,7 @@ router.post("/api/debug", upload.none(), isAuthorized, hasRole({any: 'Member'}),
             default:
               status = 500;
           }
-          console.error(`> ${error.message}`);
+          log.error(`> ${error.message}`);
           return res.status(status).send(error.message);
         }
       }

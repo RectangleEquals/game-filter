@@ -1,4 +1,5 @@
 "use strict";
+const log = require("../lib/log");
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 const { readFile } = require('fs/promises');
@@ -35,19 +36,19 @@ class Mailer
     return await this.transporter.sendMail(this.mailOptions).then(info => {
       this.info = info;
       this.error = null;
-      console.log('Email sent: ' + info.response);
+      log.info('Email sent: ' + info.response);
       return info;
     }).catch(err => {
       this.info = null;
       this.error = err;
-      console.error(err);
+      log.error(err);
       return false;
     });
   }
 
   static async createFromHtmlFile(host, port, username, password, recipient, subject, htmlFile, modifierCallback) {
     if(!fs.existsSync(htmlFile)) {
-      console.error('[Mailer]: Invalid file path!');
+      log.error('[Mailer]: Invalid file path!');
       return null;
     }
 
@@ -55,7 +56,7 @@ class Mailer
     .then(data => {
       return data.toString();
     }).catch(err => {
-      console.error(`[Mailer]: ${err}`);
+      log.error(`[Mailer]: ${err}`);
       return null;
     });
 

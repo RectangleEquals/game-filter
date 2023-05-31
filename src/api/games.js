@@ -1,3 +1,4 @@
+const log = require("../lib/log");
 const router = require("express").Router();
 const addOrUpdateGame = require("../addGame");
 const Game = require("../models/Game");
@@ -10,7 +11,7 @@ function relativeRoute(relativePath) {
 }
 
 function redirect(res, route, delay = 0) {
-  console.log(`Redirecting to '${route}'...`);
+  log.info(`Redirecting to '${route}'...`);
   setTimeout(() => res.redirect(route), delay);
 }
 
@@ -21,7 +22,7 @@ function redirectRelative(res, relativePath, delay = 0) {
 // Get game by ID
 router.get("/:gameId", (req, res) =>
 {
-  console.log(`${basepath}/${req.params.gameId} from ${req.ip}`);
+  log.info(`${basepath}/${req.params.gameId} from ${req.ip}`);
 
   // Game data should only update once per day, max...
   // So we set a cache control to help maximize performance
@@ -40,16 +41,16 @@ router.get("/:gameId", (req, res) =>
 
 // Add a game
 router.post('/', async (req, res) => {
-  console.log('Incoming game POST request...');
+  log.info('Incoming game POST request...');
   try {
     const game = req.body;
-    console.log(`> [game]:\n${JSON.stringify(game)}`);
+    log.info(`> [game]:\n${JSON.stringify(game)}`);
     const updatedGame = await addOrUpdateGame(game);
     res.status(200).json(updatedGame);
   } catch (error) {
     res.status(500).json({ message: error });
   }
-  console.log('> Finished processing game POST request')
+  log.info('> Finished processing game POST request')
 });
 
 module.exports = { basepath, route: router };

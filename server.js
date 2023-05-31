@@ -1,16 +1,17 @@
 const config = require("./src/config/config");
+const log = require("./src/lib/log");
 const express = require("express");
 const server = express();
 const database = require("./src/database");
 const compression = require("compression");
 const corsWhitelist = require("./src/corsWhitelist");
-const cookieParser = require('cookie-parser');
-const session = require('express-session');
-const { getPassport, passport } = require('./src/passport');
-const fs = require('fs');
-const path = require('path');
-const discordStrategy = require('./src/strategies/discord');
-const localStrategy = require('./src/strategies/local');
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
+const { getPassport, passport } = require("./src/passport");
+const fs = require("fs");
+const path = require("path");
+const discordStrategy = require("./src/strategies/discord");
+const localStrategy = require("./src/strategies/local");
 //const routes = require("./src/routes");
 
 const oneDayInMilliseconds = 86400000;
@@ -18,31 +19,31 @@ const oneDayInMilliseconds = 86400000;
 
 async function run()
 {
-  console.log('Starting server...');
+  log.info('Starting server...');
 
   // Connect to remote database and init server
   try {
     database.getClient().then(async (client) =>
     {
-      console.log('Testing connection...');
+      log.info('Testing connection...');
 
       // don't run the server without a valid database connection
       if(client === undefined || client === null) {
-        console.error('Failed to connect to database!');
+        log.error('Failed to connect to database!');
         process.exit(-1);
       }
 
       // init server
-      console.log('Initializing server...');
+      log.info('Initializing server...');
       await init();
 
-      console.log('Returning server...');
+      log.info('Returning server...');
       return server;
     }).catch(err => {
-      console.error(`[SERVER]: ${err.message}`);
+      log.error(`[SERVER]: ${err.message}`);
     });
   } catch (error) {
-    console.error(`[SERVER (root)]: ${err.message}`);
+    log.error(`[SERVER (root)]: ${err.message}`);
   }
 
   return server;
@@ -51,7 +52,7 @@ async function run()
 // determines middleware priorities and starts server
 async function init() {
   // setup middlewares
-  console.log('Setting up middlewares...');
+  log.info('Setting up middlewares...');
 
   try{
     //await useCompression();
@@ -65,26 +66,26 @@ async function init() {
     await usePassport();
     await useRoutes();
   } catch(err) {
-    console.error(`[SERVER (init)]: ${err.message}`);
+    log.error(`[SERVER (init)]: ${err.message}`);
     process.exit(-1);
   }
 
   // start server
-  console.log('Starting listen server...');
+  log.info('Starting listen server...');
   await listen();
 
-  console.log('=== SERVER IS READY ===');
+  log.info('=== SERVER IS READY ===');
 }
 
 // compression middleware
 async function useCompression() {
-  console.log('> compression');
+  log.info('> compression');
   server.use(compression());
 }
 
 /*
 async function useCookieDomainFix() {
-  console.log(`> cookie domain fix (${config.PRODUCTION_DOMAIN_NAME})`);
+  log.info(`> cookie domain fix (${config.PRODUCTION_DOMAIN_NAME})`);
   server.use((req, res, next) => {
     res.set('Set-Cookie', `${res.getHeader('Set-Cookie')}; domain=${config.PRODUCTION_DOMAIN_NAME}; HttpOnly; Secure; SameSite=None`);
     next();
@@ -94,21 +95,21 @@ async function useCookieDomainFix() {
 
 // bodyparser (NOTE: As of Express v4.16, this is now built in)
 async function useBodyParser() {
-  console.log('> bodyparser');
+  log.info('> bodyparser');
   server.use(express.urlencoded({extended: true}));
   server.use(express.json());
 }
 
 // cors
 async function useCors() {
-  console.log('> cors');
+  log.info('> cors');
   await corsWhitelist.setup(server);
   server.use(corsWhitelist.middleware);
 }
 
 // cookie parser
 async function useCookieParser() {
-  console.log('> cookie parser');
+  log.info('> cookie parser');
   server.use(cookieParser());
 }
 
@@ -116,7 +117,7 @@ async function useCookieParser() {
 async function useSession() {
   // NOTE: the '(var | 0)' forces the env variable string into a number
   const expires = (config.SESSION_COOKIE_LIFETIME | 0) || oneDayInMilliseconds;
-  console.log(`> express session (via domain '${config.PRODUCTION_DOMAIN_NAME}' with expiration of '${expires}')`);
+  log.info(`> express session (via domain '${config.PRODUCTION_DOMAIN_NAME}' with expiration of '${expires}')`);
 
   server.use(session({
     secret: config.SESSION_SECRET,
@@ -136,9 +137,9 @@ async function useSession() {
 
 // request logging
 async function useRequestLogging() {
-  console.log('> request logging');
+  log.info('> request logging');
   server.use((req, res, next) => {
-    console.log(`[request]: ${req.method}:${req.url}`);
+    log.info(`[request]: ${req.method}:${req.url}`);
     next();
   });
 }
@@ -146,7 +147,7 @@ async function useRequestLogging() {
 // session.regenerate fix (https://github.com/jaredhanson/passport/issues/904)
 async function useRegenerateFix()
 {
-  console.log('> session.regenerate fix');
+  log.info('> session.regenerate fix');
   server.use(function(request, response, next) {
     if (request.session && !request.session.regenerate)
         request.session.regenerate = cb => {
@@ -165,7 +166,7 @@ async function useRegenerateFix()
 // passport strategies
 async function usePassport()
 {
-  console.log('> passport');
+  log.info('> passport');
   getPassport(server);
 
   localStrategy.use();
@@ -175,27 +176,27 @@ async function usePassport()
 
 // routes
 async function useRoutes() {
-  console.log('> routes');
+  log.info('> routes');
 
   // Debug
-  console.log('>> debug');
+  log.info('>> debug');
   const debug = require('./src/api/debug');
   server.use(debug.router);
 
   // Auth
-  console.log('>> auth');
+  log.info('>> auth');
   const auth = require('./src/api/auth');
   server.use(auth.router);
 
   // Social
-  console.log('>> social');
+  log.info('>> social');
   const link = require('./src/api/link');
   server.use(link.router);
   const user = require('./src/api/user');
   server.use(user.router);
 
   // return await routes.use(server, err => {
-  //   console.error(err.message);
+  //   log.error(err.message);
   //   process.exit(-1);
   // });
 }
@@ -203,7 +204,7 @@ async function useRoutes() {
 // starts the http listen server
 async function listen()
 {
-  server.listen(config.PORT, () => console.log(`Server running on port ${config.PORT}`));
+  server.listen(config.PORT, () => log.info(`Server running on port ${config.PORT}`));
 };
 
-module.exports = run().then(srv => srv).catch(err => console.error(`[MAIN]: Fatal error: ${err.message}`));
+module.exports = run().then(srv => srv).catch(err => log.error(`[MAIN]: Fatal error: ${err.message}`));

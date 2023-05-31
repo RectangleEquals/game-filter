@@ -1,3 +1,4 @@
+const log = require("../lib/log");
 const express = require("express");
 const { isAuthorized } = require("./auth");
 const { getGuildIconUrl, getUserGuildRelationships } = require("../strategies/discord");
@@ -42,7 +43,7 @@ const handleUserRequest = async(req, res, next) =>
 {
   // Handle any errors thrown from previous middleware(s)
   if (!(req.userSession && req.userSession.accessToken)) {
-    console.error("[ERROR (handleUserRequest)]: invalid token");
+    log.error("[ERROR (handleUserRequest)]: invalid token");
     return res.status(400).send("invalid_token");
   }
   
@@ -89,7 +90,7 @@ router.post('/api/user', upload.none(), isAuthorized, handleUserRequest, async(r
     
     res.status(200).json(req.userData || {});
   } catch (err) {
-    console.error(err);
+    log.error(err);
     return res.status(500).send(err.message);
   }
 });

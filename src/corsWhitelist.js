@@ -1,4 +1,5 @@
 const config = require("./config/config");
+const log = require("./lib/log");
 const cors = require("cors");
 const url = require("url");
 
@@ -25,7 +26,7 @@ const setup = async(server) =>
     allowedOrigins.push(trimmedLine);
   }
 
-  console.log(`[Allowed Origins]:\n${allowedOrigins}`);
+  log.info(`[Allowed Origins]:\n${allowedOrigins}`);
 
   server.use(function (req, res, next) {
     req.headers.origin = req.headers.origin || req.headers.host;
@@ -41,7 +42,7 @@ const middleware = cors({
       const parsedOrigin = url.parse(originWithProtocol || '');
       const domain = parsedOrigin.hostname || '';
 
-      console.log(`Incoming request from ${domain}`);
+      log.info(`Incoming request from ${domain}`);
 
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!domain) return callback(null, true);
